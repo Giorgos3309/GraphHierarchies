@@ -814,7 +814,6 @@ public class Heuristics {
 		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
 		int[] od_counter = new int[G.getVertices().size()];//outdegree counter
 		Queue<IVertex> queue = new LinkedList<>();
-		//System.out.println("here1");
 		for(IVertex v: G.getVertices()){
 			int index = (int)v.getId();
 			array[index]=v;
@@ -825,18 +824,15 @@ public class Heuristics {
 				queue.add(v);
 			}
 		}
-		//System.out.println("here2");
 		
 		while(queue.isEmpty()==false){
 			IVertex cur = queue.remove();
-			//System.out.println("here3");
 			IVertex toAdd=null;
 			int min_outdegree=G.getEdges().size()+1;
 			boolean belongToC = false;
 			
 			if(cd[(int)cur.getId()].channel_index!=-1){
 				belongToC=true;
-				//System.out.println("here:"+cur.getId());
 			}else{
 				//todo : chooses the vertex with the lowest outdegree if none of my predecessors has acquired it
 				for(IVertex tmp_v : cur.getAdjacentSources()){ //choose the immediate predecessor with the lowest outdegree
@@ -892,7 +888,6 @@ public class Heuristics {
 		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
 		int[] od_counter = new int[G.getVertices().size()];//outdegree counter
 		Queue<IVertex> queue = new LinkedList<>();
-		//System.out.println("here1");
 		for(IVertex v: G.getVertices()){
 			int index = (int)v.getId();
 			array[index]=v;
@@ -903,18 +898,16 @@ public class Heuristics {
 				queue.add(v);
 			}
 		}
-		//System.out.println("here2");
+	
 		
 		while(queue.isEmpty()==false){
 			IVertex cur = queue.remove();
-			//System.out.println("here3");
 			IVertex toAdd=null;
 			int min_outdegree=G.getEdges().size()+1;
 			boolean belongToC = false;
 			
 			if(cd[(int)cur.getId()].channel_index!=-1){
 				belongToC=true;
-				//System.out.println("here:"+cur.getId());
 			}else{
 				//chooses the vertex with the lowest outdegree if none of my predecessors has acquired it
 				for(IVertex tmp_v : cur.getAdjacentSources()){ //choose the immediate predecessor with the lowest outdegree
@@ -988,7 +981,6 @@ public class Heuristics {
 		LinkedList<IVertex> V0 = new LinkedList<>();
 		LinkedList<LinkedList<IVertex>> V = new LinkedList<LinkedList<IVertex>>();
 		int i = 0;
-		//System.out.println("here1");
 		for(IVertex v: G.getVertices()){
 			int index = (int)v.getId();
 			//array[index]=v;//?? do i need it
@@ -1001,7 +993,6 @@ public class Heuristics {
 				for(IVertex adj:v.getAdjacentSources()){
 					if(adj.getVisited()==false){
 						W.add(adj);
-						//System.out.println("here"+(int)adj.getId());
 						adj.setVisited(true);
 					}
 				}

@@ -11,6 +11,6 @@ public class Point{
 	public void setx(double x){this.x=x;}
 	public void sety(double y){this.y=y;}
 	public String toString(){
-		return "("+x+"\t"+y+")";
+		return "("+x+","+y+")";
 	}
 }

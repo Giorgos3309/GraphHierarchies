@@ -4,11 +4,23 @@ import java.util.Comparator;
 
 class ChannelColumns{
 	LinkedList<Column> []columns;
+	boolean []right; 
 	ChannelColumns(int channels_num){
 		columns = new LinkedList[channels_num];
+		right = new boolean[channels_num];
 		for(int c=0;c<channels_num;++c){
 				columns[c] = new LinkedList<Column>();
+				right[c] = false;
 		}
+	}
+	boolean isRight(int c){
+		return right[c];
+	}
+	void setRight(int c){
+		right[c] = true;
+	}
+	void setLeft(int c){
+		right[c] = false;
 	}
 	void add(int channel,LinkedList<Interval> intervals){
 		Collections.sort(intervals, new Comparator<Interval>() {
@@ -45,6 +57,14 @@ class ChannelColumns{
 			System.out.println("");
 		}*/
 	}
-
+    int getmaxwidth(){
+		int w=0;
+		for(LinkedList<Column> l:columns){
+			if(l.size()>w){
+				w=l.size();
+			}
+		}
+		return w;
+	}
 	LinkedList<Column> getcolumns(int c){return columns[c];}
 }

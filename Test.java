@@ -52,4 +52,9 @@ class Test{
 	LinkedList<Channel> getDecomposition(){
 		return this.decomposition;
 	}
+
+	int getwidth(){return decomposition.size();}
+	int getdepth(){return depth;}
+	int gettype(){return h_type;}
+	long getduration(){return duration;}
 }

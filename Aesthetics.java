@@ -12,32 +12,75 @@ class Aesthetics
 	private LinkedList<LinkedList<LineSegment>> linesegments;
 	public Aesthetics(Hierarchical pbf){
 		this.pbf = pbf;
-		linesegments = null;
+		this.linesegments = new LinkedList<LinkedList<LineSegment>>();
+		this.linesegments.add(new LinkedList<LineSegment>());
+		this.linesegments.add(new LinkedList<LineSegment>());
+		this.linesegments.add(new LinkedList<LineSegment>());
 	}
 	LinkedList<LineSegment> get_cross_ls(){return this.linesegments.get(cross_e);}
 	LinkedList<LineSegment> get_path_ls(){return this.linesegments.get(path_e);}
 	LinkedList<LineSegment> get_pathtr_ls(){return this.linesegments.get(path_tr_e);}
 	
 	LinkedList<LineSegment> bundling(LinkedList<LineSegment> ls){
+		LinkedList<LineSegment> res = new LinkedList<LineSegment>();
 		LineSegment newls;
 		Set<LineSegment> visited = new HashSet<LineSegment>();
 		for(LineSegment s1:ls){
+			newls=s1;
 			Point p1 = s1.getp1();
 			Point q1 = s1.getp2(); 
+			if(visited.contains(s1)){continue;}
 			visited.add(s1);
 			for(LineSegment s2:ls){
 				if(visited.contains(s2)){continue;}
 				Point p2 = s2.getp1(); 
 				Point q2 = s2.getp2();
 				if( needbundling(p1,q1,p2,q2) ){
-					System.out.println("need bundling: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]) (["+p2.getx()+","+p2.gety()+"] ,["+q2.getx()+","+q2.gety()+"])");
+					
+					if(p1.getx()==p2.getx()	// 1st case of path tr. edges bundling and cross edges bundling
+					   &&p1.gety()==p2.gety()
+					   &&q1.getx()==q2.getx()
+					   &&q1.gety()==q2.gety() )
+					{				
+						newls = new LineSegment( p1.getx() , p1.gety() , q1.getx() , q1.gety() );
+						p1 = newls.getp1();
+						q1 = newls.getp2(); 
+						System.out.println("bundled1: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");// (["+p2.getx()+","+p2.gety()+"] ,["+q2.getx()+","+q2.gety()+"])");
+					}else if((p1.getx()==q1.getx())&&(p2.getx()==q2.getx())&&(p2.getx()==p1.getx())){ // vertical bundling of path tr. edges
+						double x = p1.getx();
+						double y1;
+						double y2;
+						if(p1.gety()<=p2.gety()){
+							y1 = p1.gety();
+							//y st. cord = p1.gety 
+						}else{
+							y1 = p2.gety();
+							//y st. cord = p2.gety 
+						}
+						
+						if(q1.gety()>=q2.gety()){
+							y2 = q1.gety();
+							//y f cord = q1.gety()
+						}else{
+							y2 = q2.gety();
+							//y f cord = q2.gety()
+						}
+						newls = new LineSegment( x,y1,x,y2);
+						p1 = newls.getp1();
+						q1 = newls.getp2(); 
+						System.out.println("bundled2: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");
+					}else{
+						System.err.println("Aesthetics::bundling::error1");
+						System.exit(0);
+					}
 					visited.add(s2);
 				}
 			}
-			
+			res.add(newls);
 		}
-		return null;
+		return res;
 	}
+	
 	static boolean needbundling(Point p1, Point q1, Point p2, Point q2) 
 	{ 
 		// Find the four orientations needed for general and 
@@ -138,9 +181,9 @@ class Aesthetics
 	} 
 	
 	void getLineSegments(){
-		LinkedList<LineSegment> path_edges = new LinkedList<LineSegment>();
-		LinkedList<LineSegment> path_tr_edges = new LinkedList<LineSegment>();
-		LinkedList<LineSegment> cross_edges = new LinkedList<LineSegment>();
+		LinkedList<LineSegment> path_edges = get_path_ls();//new LinkedList<LineSegment>();
+		LinkedList<LineSegment> path_tr_edges = get_pathtr_ls();//new LinkedList<LineSegment>();
+		LinkedList<LineSegment> cross_edges = get_cross_ls();//new LinkedList<LineSegment>();
 		double d = 0.00001;
 		for(LEdge e:pbf.getLG().getEdges()){
 			
@@ -217,16 +260,53 @@ class Aesthetics
 				
 			}
 		}
-		LinkedList<LinkedList<LineSegment>> res = new LinkedList<LinkedList<LineSegment>>();
-		res.addLast(cross_edges);
-		res.addLast(path_edges);
-		res.addLast(path_tr_edges);
-		linesegments = res;
+		//this.linesegments.add(path_tr_edges);
+		//this.linesegments.add(path_edges);
+		//this.linesegments.add(cross_edges);
 	}
 	private double calc_x(double slope,double c,double y){
 		return 	(y-c)/slope;			//y=slope*x+c => x=(y-c)/slope
 	}
 	
+	
+	
+	public static int countCrossings(LinkedList<LineSegment> l1,LinkedList<LineSegment> l2){
+		int crossings = 0;
+		for(LineSegment s1:l1){
+			Point p1 = s1.getp1();
+			Point q1 = s1.getp2();
+			for(LineSegment s2:l2){
+				Point p2 = s2.getp1();
+				Point q2 = s2.getp2();
+				//System.out.println("do intersect:"+p1+q1+p2+q2+"\t"+doIntersect(p1,q1,p2,q2));
+				if(doIntersect(p1,q1,p2,q2)){
+					++crossings;
+				}
+			}
+		}
+		return crossings;
+	}
+	
+	public static int countCrossings(LinkedList<LineSegment> l){
+		Set<LineSegment> visited = new HashSet<LineSegment>();
+		int crossings = 0;
+		for(LineSegment s1:l){
+			Point p1 = s1.getp1();
+			Point q1 = s1.getp2();
+			if(visited.contains(s1)){continue;}
+			visited.add(s1);
+			for(LineSegment s2:l){
+				if( visited.contains(s2) ){continue;}
+				Point p2 = s2.getp1();
+				Point q2 = s2.getp2();
+				if(doIntersect(p1,q1,p2,q2)){
+					++crossings;
+				}
+				//visited.add(s2);
+			}
+		}
+		return crossings;
+	}
 	// Driver code 
 	public static void main(String[] args) 
 	{ 

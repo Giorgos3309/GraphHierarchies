@@ -158,17 +158,13 @@ public class MaxHeap {
     // Remove an element from max heap 
     public LinkedList<LEdge> extractMax() 
     { 
-		System.out.println("hereeeeee500"+size_o+" "+size_i);
 		LinkedList<LEdge> interval = new LinkedList<LEdge>();
 		
 		if(size_o==0&&size_i==0){return null;}
         Hierarchical.IntervalNode poppedi = Heap_indegree[1];
-		System.out.println("hereeeeee700\n");
 		Hierarchical.IntervalNode poppedo = Heap_outdegree[1];
 		Hierarchical.IntervalNode popped;
-		System.out.println("hereeeeee600\n");
 		if (poppedo.getoutdegree()>poppedi.getindegree()){
-			System.out.println("hereeeeee100\n");
 			popped = poppedo;
 			if(popped.getoutdegree()==0){return null;}
 			
@@ -184,7 +180,6 @@ public class MaxHeap {
 				oe.setVisited();
 				info.get(oe.gettargetId()).decrease_ind();
 			}
-			System.out.println("hereeeeee200\n");
 		}else{
 			System.out.println("hereeeeee300\n");
 			popped = poppedi;

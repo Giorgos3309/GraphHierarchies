@@ -19,6 +19,8 @@ public class LNode{
 	public int getId(){return id;}
 	public double getx(){return p.getx();}
 	public double gety(){return p.gety();}
+	public void setx(double x){ p.setx(x);}
+	public void sety(double y){ p.sety(y);}
 	public LNode(int id,double x,double y){
 		this.id = id;
 		this.p = new Point(x,y);

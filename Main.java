@@ -107,7 +107,7 @@ public class Main {
 		private String description;
 	}
 	
-	private static void setTopologicalIds(SimpleGraph G){
+	public static void setTopologicalIds(SimpleGraph G){
 		TopologicalSort ts = new TopologicalSort(G.getVertices().size());
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		int c=0;
@@ -124,8 +124,10 @@ public class Main {
 		}
 		LinkedList<Integer> l=ts.topologicalSort();
 		
+		int counter = 0;
 		for(Integer i:l){
-			array[i].setId(i);
+			array[i].setId(counter);
+			counter+=1;
 		}
 	}
 	
@@ -151,16 +153,23 @@ public class Main {
 		*/
 		//JSONObject jgraphs = new JSONObject();
 		int graphs_num = 0;
+		JSONinfo metrics = new JSONinfo();
 		try {
 			for(File f: files) {
 				System.out.println("Processing: " + graphs_num +"/"+ files.size());
 				SimpleGraph G = r.read(f);
 				G.setAdjacency();
 				setTopologicalIds(G);
-				
+				/*System.out.println("NODES:");
+				for(IVertex v:G.getVertices()){
+					System.out.println(""+(int)v.getId());
+				}
+				System.out.println("EDGES:");
+				for(IEdge e:G.getEdges()){
+					System.out.println(""+(int)e.getSource().getId()+"->"+(int)e.getTarget().getId());
+				}
+				System.exit(0);*/
 				int width;
-				//JSONObject info = new JSONObject();
- 
 				
 				System.out.println("Processing: " + graphs_num +"/"+ files.size());
 				
@@ -171,6 +180,8 @@ public class Main {
 				System.out.println("Width= "+ width);
 				System.out.flush();
 				
+				JSONObject info = JSONinfo.create( f.getName() , f.getAbsolutePath( ) , G.getVertices().size() , G.getEdges().size() , width );
+
 				/*info.put("filename", f.getName());
 				info.put("AbsolutePath", f.getAbsolutePath() );
 				info.put("nodes",G.getVertices().size());
@@ -178,29 +189,41 @@ public class Main {
 				info.put("width",width);
 				info.put("dec_heuristics",new JSONObject());
 				*/
+				
 				///////////////////////////////////////////////////////////
 				//////////////Test heuristics/////////////////////////////
 				//////////////////////////////////////////////////////////
+				
 				Test coh = new Test(h,G,Test.COH);
+				JSONinfo.addTests(info,coh);	
 				Test noh = new Test(h,G,Test.NOH);
+				JSONinfo.addTests(info,noh);
 				Test h3 = new Test(h,G,Test.H3);
+				JSONinfo.addTests(info,h3);
 				
 				Test coh_d1 = new Test(h,G,1,Test.COH);
+				JSONinfo.addTests(info,coh_d1);
 				Test noh_d1 = new Test(h,G,1,Test.NOH);
+				JSONinfo.addTests(info,noh_d1);
 				Test h3_d1 = new Test(h,G,1,Test.H3);
+				JSONinfo.addTests(info,h3_d1);
 				
 				Test coh_d3 = new Test(h,G,3,Test.COH);
+				JSONinfo.addTests(info,coh_d3);
 				Test noh_d3 = new Test(h,G,3,Test.NOH);
+				JSONinfo.addTests(info,noh_d3);
 				Test h3_d3 = new Test(h,G,3,Test.H3);
-				System.out.println("Checks\n");
+				JSONinfo.addTests(info,h3_d3);
 				
-				if(h.checkDecomposition(G,h3.getDecomposition())==false){return;}else{System.out.println("OK");}
+				//System.out.println("Checks\n");
+				metrics.addGraphMetrics(info);
+				/*if(h.checkDecomposition(G,h3.getDecomposition())==false){return;}else{System.out.println("OK");}
 				if(h.checkDecomposition(G,coh.getDecomposition())==false){return;}else{System.out.println("OK");}
 				if(h.checkDecomposition(G,noh.getDecomposition())==false){return;}else{System.out.println("OK");}
 				if(h.checkDecomposition(G,h3_d1.getDecomposition())==false){return;}else{System.out.println("OK");}
 				if(h.checkDecomposition(G,coh_d1.getDecomposition())==false){return;}else{System.out.println("OK");}
 				if(h.checkDecomposition(G,noh_d1.getDecomposition())==false){return;}else{System.out.println("OK");}
-				/*test(H2,G,"Heuristic2",info);
+				test(H2,G,"Heuristic2",info);
 				
 				test(COrderH_ImS,G,"ChainOrderHeuristic_ImS",info);
 				test(COrderH_S,G,"ChainOrderHeuristic_S",info);
@@ -271,7 +294,11 @@ public class Main {
 			
 			//jgraphs.put("gnum",graphs_num);
 		}catch(Exception e) {
-			System.out.print(e);
+			for(int i=0;i<e.getStackTrace().length;++i){
+				String methodName = e.getStackTrace()[i].getMethodName();
+				System.out.print(methodName+"::");
+			}
+			System.out.println(e);
 		}
 		
 		try {  
@@ -282,10 +309,10 @@ public class Main {
             System.out.println("Writing JSON object to file");  
             System.out.println("-----------------------");  
 
-            //fileWriter.write(jgraphs.toString());  
+            fileWriter.write(metrics.toString());  
             fileWriter.flush();  
             fileWriter.close();  
-
+			//System.out.println(metrics);
         } catch (IOException e) {  
             e.printStackTrace();  
         }  
