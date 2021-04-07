@@ -16,6 +16,8 @@ class Aesthetics
 		this.linesegments.add(new LinkedList<LineSegment>());
 		this.linesegments.add(new LinkedList<LineSegment>());
 		this.linesegments.add(new LinkedList<LineSegment>());
+		
+		this.getLineSegments();
 	}
 	LinkedList<LineSegment> get_cross_ls(){return this.linesegments.get(cross_e);}
 	LinkedList<LineSegment> get_path_ls(){return this.linesegments.get(path_e);}
@@ -45,7 +47,7 @@ class Aesthetics
 						newls = new LineSegment( p1.getx() , p1.gety() , q1.getx() , q1.gety() );
 						p1 = newls.getp1();
 						q1 = newls.getp2(); 
-						System.out.println("bundled1: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");// (["+p2.getx()+","+p2.gety()+"] ,["+q2.getx()+","+q2.gety()+"])");
+						//System.out.println("bundled1: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");// (["+p2.getx()+","+p2.gety()+"] ,["+q2.getx()+","+q2.gety()+"])");
 					}else if((p1.getx()==q1.getx())&&(p2.getx()==q2.getx())&&(p2.getx()==p1.getx())){ // vertical bundling of path tr. edges
 						double x = p1.getx();
 						double y1;
@@ -68,7 +70,7 @@ class Aesthetics
 						newls = new LineSegment( x,y1,x,y2);
 						p1 = newls.getp1();
 						q1 = newls.getp2(); 
-						System.out.println("bundled2: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");
+						//System.out.println("bundled2: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");
 					}else{
 						System.err.println("Aesthetics::bundling::error1");
 						System.exit(0);
@@ -306,6 +308,79 @@ class Aesthetics
 			}
 		}
 		return crossings;
+	}
+
+	public int cross_bends(int bundled_cross_ls){
+		ChannelColumns cc = pbf.getColumns();
+		int bends_cr;
+		
+		int cross_ls = get_cross_ls().size();
+		int bundled_edges = cross_ls-bundled_cross_ls;
+		bends_cr = cross_ls/2-bundled_edges;
+		
+		return bends_cr;
+		
+	}
+	
+	public int pathtr_bends(){
+		int totalbends = 0;
+		
+		ChannelColumns cc = pbf.getColumns();
+		for(int chain=0;chain<pbf.getchannels_num();++chain){
+			for(Column c:cc.getcolumns(chain) ){
+				for(Interval i:c.getcolumn()){
+					totalbends+=(i.getsize()+1);
+				}
+			}
+		}
+		return totalbends;
+	}
+	
+	public int Width(){
+		Set<Double> xcord = new HashSet<Double>();
+		int w=0;
+		LinkedList<LEdge> ledges= pbf.getLG().getEdges();
+		for(int i=0;i<pbf.totalLNodes();++i){
+			double x = pbf.getLG().getnode(i).getx();
+			if(xcord.contains(x)==false){
+				xcord.add(x);
+				++w;
+			}
+		}
+		
+		for(LEdge e:ledges){
+			for(Point p:e.getbends()){
+				double x = p.getx();
+				if(xcord.contains(x)==false){
+					xcord.add(x);
+					++w;
+				}
+			}
+		}
+		return w;
+	}
+	public int Height(){		
+		Set<Double> ycord = new HashSet<Double>();
+		int h=0;
+		LinkedList<LEdge> ledges= pbf.getLG().getEdges();
+		for(int i=0;i<pbf.totalLNodes();++i){
+			double y = pbf.getLG().getnode(i).gety();
+			if(ycord.contains(y)==false){
+				ycord.add(y);
+				++h;
+			}
+		}
+		
+		for(LEdge e:ledges){
+			for(Point p:e.getbends()){
+				double y = p.gety();
+				if(ycord.contains(y)==false){
+					ycord.add(y);
+					++h;
+				}
+			}
+		}
+		return h;
 	}
 	// Driver code 
 	public static void main(String[] args) 

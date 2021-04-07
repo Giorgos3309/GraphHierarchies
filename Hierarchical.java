@@ -7,22 +7,26 @@ import java.util.HashMap;
 import graph.*;
 
 class Hierarchical{
-	
+	private SimpleGraph G;
 	private int[] y_coordinates ;
-	private int[] x_coordinates ;
-	
+	private Integer[] x_coordinates ;
+	private Integer[] x_c;
 	private int channels_num;
 	private LGraph LG;
+	private ChannelColumns columns;
+	
 	private double x_dist;
 	private double y_dist;
 	private int vertices_num;
-	//private LinkedList<LEdge> path_edges;
-	//private LinkedList<LEdge> pathtransitive_edges;
-	//private LinkedList<LEdge> cross_edges;
 	
-	
+	LinkedList<LEdge> cross_edges;
+	LinkedList<LEdge> path_edges;
+	LinkedList<LEdge> []pathtransitive_edges;
+
+	Integer[] getx_c(){return x_c;}
 	
 	public Hierarchical(SimpleGraph G,LinkedList<Channel> decomposition){
+		this.G=G;
 		int benddist = 10;
 		vertices_num = G.getVertices().size();
 		y_dist = 80+decomposition.size()*benddist;
@@ -32,25 +36,26 @@ class Hierarchical{
 		
 		IVertex[]  array = new IVertex[G.getVertices().size()];
 		y_coordinates = new int[G.getVertices().size()];
-		x_coordinates = new int[G.getVertices().size()];
+		x_coordinates = new Integer[G.getVertices().size()];
+		x_c = new Integer[decomposition.size()];
 		channels_num = decomposition.size();
 		
 		
-		LinkedList<LEdge> cross_edges = new LinkedList<LEdge>();
-		LinkedList<LEdge> path_edges = new LinkedList<LEdge>();
-		LinkedList<LEdge> []pathtransitive_edges = new LinkedList[channels_num];
-		for(int i=0;i<channels_num;++i){ pathtransitive_edges[i] = new LinkedList<LEdge>(); }
-		/*for(IVertex v: G.getVertices()){
-			int index = (int)v.getId();
-			array[index]=v;
-			y_coordinates[index]=index;
-		}*/
+		cross_edges = new LinkedList<LEdge>();
+		path_edges = new LinkedList<LEdge>();
+		pathtransitive_edges = new LinkedList[channels_num];
+		for(int i=0;i<channels_num;++i){
+			pathtransitive_edges[i] = new LinkedList<LEdge>();
+			x_c[i] = new Integer(i);
+		}
+	
+		
 		
 		for(int c=0;c<decomposition.size();++c){
 			for(IVertex v:decomposition.get(c).getVertices()){
 				int index = (int)v.getId();
 				array[index]=v;
-				x_coordinates[(int)v.getId()] = c;
+				x_coordinates[(int)v.getId()] = x_c[c];//c;
 				y_coordinates[index]=index;
 			}
 		}
@@ -105,47 +110,55 @@ class Hierarchical{
 			System.out.println("");
 		}*/
 		Intervals intervals = createIntervals(pathtransitive_edges);
-		ChannelColumns columns = new ChannelColumns(channels_num);
+		columns = new ChannelColumns(channels_num);
 		for(int c=0;c<channels_num;++c){
 			LinkedList<Interval> c_intervals= intervals.getIntervals(c);			
 			columns.add(c,c_intervals);
 		}
-		
+		columns.setRight(channels_num-1);
 		x_dist = columns.getmaxwidth()*5*2+200;
-		for(int i=0;i<array.length;++i){
-			double x = x_coordinates[i]*x_dist;
-			double y = y_coordinates[i]*y_dist;
-			LG.getnode((int)array[i].getId()).setx(x);
-			LG.getnode((int)array[i].getId()).sety(y);
+
+			
+		//setCordinates();
+	}
+	public int getchannels_num(){return this.channels_num;}
+	void setx_c(int []i){
+		if(i.length!=x_c.length){
+			System.out.println("ERROR:Hierarchical:setx_c");
+			System.exit(0);
 		}
-		/*undo for(int c=0;c<channels_num;++c){
-			LinkedList<Column> c_columns = columns.getcolumns(c);
-			int tmp=1;
-			for(Column col:c_columns){
-				for(Interval i:col.getcolumn()){
-					for(LEdge e:i.getinterval()){
-						double s_x = e.getsource().getx()-tmp*25;
-						double s_y = e.getsource().gety()+y_dist/2;
-						
-						double t_x = e.gettarget().getx()-tmp*25;
-						double t_y = e.gettarget().gety()-y_dist/2;
-						e.addBend(s_x,s_y);
-						e.addBend(t_x,t_y);
-						this.LG.addedge(e);
-					}
-				}
-				++tmp;
+		for(int tmp=0;tmp<i.length;++tmp){
+			x_c[tmp]=i[tmp];
+		}
+	}
+	void setColumnsOrientation(int[] i){
+		columns.setLeft(0);  //leftmost goes on the left
+		columns.setRight(channels_num-1); //rightmost goes on the right
+		for(int j=0;j<channels_num-2;++j){
+			if(i[j]==1){
+				columns.setRight(j+1);
+			}else{
+				columns.setLeft(j+1);
 			}
-		}*/
-			
-			
+		}
+	}
+	void setCordinates(){
+		for(IVertex v:G.getVertices()){
+			int id = (int)v.getId();
+			double x = x_coordinates[id]*x_dist;
+			double y = y_coordinates[id]*y_dist;
+			LG.getnode(id).setx(x);
+			LG.getnode(id).sety(y);
+		}
 		CrossEdgesToLG(  cross_edges);
 		PathEdgesToLG( path_edges);
 		PathTrEdgesToLG(pathtransitive_edges,columns);
-		
-		
 	}
-	
+	void clearbends(){
+		for(LEdge e:cross_edges){
+			e.getbends().clear();
+		}
+	}
 	private void CrossEdgesToLG( LinkedList<LEdge> cross_edges){
 		for(LEdge e:cross_edges){
 			int source = e.getsource().getId();
@@ -194,7 +207,7 @@ class Hierarchical{
 			}
 		}
 	}
-	
+	ChannelColumns getColumns(){return this.columns;}
 	static class IntervalNode{
 		int id;
 		int indegree;
@@ -393,6 +406,9 @@ class Hierarchical{
 	}
 	
 	public LGraph getLG(){return LG;}
+	public SimpleGraph getG(){return G;}
+	public int totalLNodes(){return LG.getnodessize();}
+	
 	public static void print_gml(LGraph LG){
 		try {
 			File myObj = new File("filename.txt");
@@ -424,9 +440,6 @@ class Hierarchical{
 		}
 	}
 	
-	void orderChannels(LinkedList<Channel> decomposition){
-		return ;
-	}
 	static LinkedList<LineSegment> concatanation_ls(LinkedList<LineSegment> l1,LinkedList<LineSegment> l2){
 		LinkedList<LineSegment> res = new LinkedList<LineSegment>();
 		for(LineSegment s:l1){
@@ -457,8 +470,13 @@ class Hierarchical{
 			}*/
 			
 			Hierarchical pbf = new Hierarchical(G,decomposition);
+			pbf.setCordinates();
+			
+			Permutations permutation = new Permutations(pbf);
+			permutation.permute( 0, pbf.getchannels_num()-1);
+			
 			Aesthetics aesthetics= new Aesthetics(pbf);
-			aesthetics.getLineSegments();
+			//aesthetics.getLineSegments();
 			
 			//LinkedList<LineSegment> edges = concatanation_ls(aesthetics.get_pathtr_ls(),aesthetics.get_cross_ls());
 			LinkedList<LineSegment> bundled_ptr_ls = aesthetics.bundling( aesthetics.get_pathtr_ls() );
@@ -480,10 +498,19 @@ class Hierarchical{
 			int total=ptr_ptr+cr_ptr+cr_p+cr_cr;
 			System.out.println("TOTAL CROSSINGS:"+total);
 			
+			
+			int p_b = aesthetics.pathtr_bends();
+			int c_b = aesthetics.cross_bends(bundled_cr_ls.size());
+			System.out.println("TOTAL BENDS p_b + c_b = "+p_b+" + "+c_b +" = "+(p_b+c_b));
+			int height = aesthetics.Height();
+			int width = aesthetics.Width();
+			System.out.println("Height:"+height);
+			System.out.println("Width:"+width);
+			System.out.println("Area:"+(height*width));
 			//pbf.VerticalCompaction();
 			LGraph LG = pbf.getLG();
 			print_gml(LG);
-			System.out.println("decomposition size:"+decomposition.size());
+			//System.out.println("decomposition size:"+decomposition.size());
 			//pbf.printEdges();
 		}catch(Exception e) {
 			System.out.print(e);

@@ -23,4 +23,5 @@ class Interval{
 	LinkedList<LEdge> getinterval(){return interval;}
 	int getfrom(){return from;}
 	int getto(){return to;}
+	int getsize(){return interval.size();}
 }

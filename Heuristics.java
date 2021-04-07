@@ -13,10 +13,12 @@ import graph.*;
 public class Heuristics {
 	
 	class ConcatData{
+		
 		boolean isFirst = false;
 		boolean isLast = false;
 		int channel_index=-1;
 	}
+	
 	private IVertex lookupPredecessorBFS(IVertex start,ConcatData[] cd){
 		LinkedList<IVertex> queue = new LinkedList<IVertex>();
 		Set<IVertex> visited = new HashSet<IVertex>();
@@ -1064,7 +1066,7 @@ public class Heuristics {
 		return V;
 	}
 
-	public int DAG_decomposition_Fulkerson(SimpleGraph G){
+	public LinkedList<Channel> DAG_decomposition_Fulkerson(SimpleGraph G)throws Exception{
 		
 		IVertex[] vertices_array = new IVertex[G.getVertices().size()];
 		Transitive_closure tc = new Transitive_closure(G.getVertices().size());
@@ -1102,6 +1104,51 @@ public class Heuristics {
 			}
 		}
 		
-		return tc.getvertices()-M;
+		
+		LinkedList<Channel>  decomposition = new LinkedList<Channel> ();
+		
+		int counter=0;
+		for(int i:left_side){
+			//System.out.print(""+counter+":"+i+" ");
+			counter+=1;
+		}
+		//System.out.println("FULKERSON:");
+		boolean []visited = new boolean[tc.getvertices()+1];
+		for(int i=1;i<tc.getvertices()+1;++i){
+			if(left_side[i]!=0){
+				//System.out.println("");
+				Channel channel = new Channel(G,decomposition.size());
+				int tmp = left_side[i];
+				visited[i]=true;
+				channel.addVertex(vertices_array[i-1]);
+				left_side[i]=0;
+				//System.out.println("FULKERSON: "+i);
+				while(tmp!=0){
+					//System.out.println("FULKERSON: "+tmp);
+					visited[tmp]=true;
+					channel.addVertex(vertices_array[tmp-1]);
+					int z=tmp;
+					tmp = left_side[tmp];
+					left_side[z]=0;
+					
+				}
+				decomposition.add(channel);
+			}else{
+				//System.out.println("HERE: "+i+" "+visited[i]);
+				if(visited[i]==false){
+					Channel channel = new Channel(G,decomposition.size());
+					visited[i]=true;
+					//System.out.println("\nFULKERSON: "+i);
+					channel.addVertex( vertices_array[i-1] );
+					decomposition.add(channel);
+				}
+			}
+		}
+		if(decomposition.size()!=tc.getvertices()-M){
+			System.out.println("ERROR1::Hierarchical::Fulkerson   M:"+(tc.getvertices()-M)+" dec:"+decomposition.size());
+			System.exit(0);
+		}
+		//return tc.getvertices()-M;
+		return decomposition;
 	}
 }

@@ -159,7 +159,7 @@ public class Main {
 				System.out.println("Processing: " + graphs_num +"/"+ files.size());
 				SimpleGraph G = r.read(f);
 				G.setAdjacency();
-				setTopologicalIds(G);
+				//setTopologicalIds(G);
 				/*System.out.println("NODES:");
 				for(IVertex v:G.getVertices()){
 					System.out.println(""+(int)v.getId());
@@ -176,7 +176,9 @@ public class Main {
 				System.out.println("Descritpion: "+G.getDescription());
 				System.out.println("nodes,edges= "+G.getVertices().size()+","+G.getEdges().size());
 				System.out.flush();
-				width = h.DAG_decomposition_Fulkerson(G);
+				LinkedList<Channel> Fulk_dec = h.DAG_decomposition_Fulkerson(G);
+				//if(h.checkDecomposition(G,Fulk_dec)==false){System.out.print("ERROR"); return;}
+				width = Fulk_dec.size();
 				System.out.println("Width= "+ width);
 				System.out.flush();
 				
