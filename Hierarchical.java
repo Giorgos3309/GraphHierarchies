@@ -4,13 +4,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap; 
 
+
 import graph.*;
 
 class Hierarchical{
 	private SimpleGraph G;
 	private int[] y_coordinates ;
-	private Integer[] x_coordinates ;
-	private Integer[] x_c;
+	private MutInteger [] x_coordinates ;
+	private MutInteger [] x_c;
 	private int channels_num;
 	private LGraph LG;
 	private ChannelColumns columns;
@@ -470,10 +471,12 @@ class Hierarchical{
 			}*/
 			
 			Hierarchical pbf = new Hierarchical(G,decomposition);
+			int[] per = {0,1,3,2,4,5};
+			pbf.setx_c(per);
 			pbf.setCordinates();
 			
-			Permutations permutation = new Permutations(pbf);
-			permutation.permute( 0, pbf.getchannels_num()-1);
+			//Permutations permutation = new Permutations(pbf);
+			//permutation.permute( 0, pbf.getchannels_num()-1);
 			
 			Aesthetics aesthetics= new Aesthetics(pbf);
 			//aesthetics.getLineSegments();
