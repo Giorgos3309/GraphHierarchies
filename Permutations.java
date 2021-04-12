@@ -5,6 +5,14 @@ class Permutations
 	long counter = 0;
 	long tmp = 0;
 	int []p;
+	
+	private int[] opt_i_or;
+	private int min_crossings;
+	private int []opt_c_or;
+	
+	int []get_opt_i_or(){return opt_i_or;}
+	int []get_opt_p(){return opt_c_or;}
+	
 	public static void main(String[] args)
 	{
 		String str = "ABCD";
@@ -22,6 +30,10 @@ class Permutations
 		for(int i=0;i<h.getchannels_num();++i ){
 			p[i]=i;
 		}
+		opt_i_or = new int[h.getchannels_num()-2];
+		opt_c_or = new int[h.getchannels_num()];
+		min_crossings = Integer.MAX_VALUE;
+		permute( 0, h.getchannels_num()-1);
 	}
 	private String printIntArray(int []a){
 		String str = "";
@@ -61,7 +73,7 @@ class Permutations
 		if (l == r){
 			counter+=1;
 			//if(tmp>str.charAt(str.length()-1) )
-				System.out.println(""+counter+"\t:"+printIntArray(str) );
+				//System.out.println(""+counter+"\t:"+printIntArray(str) );
 		}else
 		{
 			for (int i = l; i <= r; i++)
@@ -98,16 +110,25 @@ class Permutations
 		if (l == r){
 			if( (tmp>(int)str[str.length-1] )){
 				counter+=1;
-				System.out.println(""+counter+"\t:"+printIntArray(str));
+				//System.out.println(""+counter+"\t:"+printIntArray(str));
+				
+				
 				h.setx_c(str);
-				h.clearbends();
-				h.setCordinates();
-				Aesthetics aesth = new Aesthetics(h);
-				LinkedList<LineSegment> bundled_ptr_ls = aesth.bundling( aesth.get_pathtr_ls() );
-				LinkedList<LineSegment> bundled_cr_ls = aesth.bundling( aesth.get_cross_ls() );
-				LinkedList<LineSegment> path_ls = aesth.get_path_ls();
 				
 				BC bc = new BC(h);
+				
+				if(bc.min_cr()<min_crossings){
+					min_crossings = bc.min_cr();
+					System.out.println("min cr:"+min_crossings);
+					int c=0;
+					for(int j:bc.getarray()){
+						opt_i_or[c]=j;
+						++c;
+					}
+					for(int j=0;j<str.length;++j){
+						opt_c_or[j]=str[j];
+					}
+				}
 			}
 		}else
 		{

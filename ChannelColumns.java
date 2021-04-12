@@ -67,4 +67,5 @@ class ChannelColumns{
 		return w;
 	}
 	LinkedList<Column> getcolumns(int c){return columns[c];}
+	int getsize(){return columns.length;}
 }

@@ -181,7 +181,7 @@ public class MaxHeap {
 				info.get(oe.gettargetId()).decrease_ind();
 			}
 		}else{
-			System.out.println("hereeeeee300\n");
+			//System.out.println("hereeeeee300\n");
 			popped = poppedi;
 			if(popped.getindegree()==0){return null;}
 			
@@ -197,7 +197,7 @@ public class MaxHeap {
 				ie.setVisited();
 				info.get(ie.getsourceId()).decrease_outd();
 			}
-			System.out.println("hereeeeee400\n");
+			//System.out.println("hereeeeee400\n");
 		}
         return interval; 
     }

@@ -10,8 +10,8 @@ public class LGraph{
 	public void addnode(LNode n){
 		this.nodes[n.getId()] = n;
 	}
-	public void addnode_c(int id,double x,double y){
-		LNode ln = new LNode(id,x,y); 
+	public void addnode_c(int id,double x,double y,String label){
+		LNode ln = new LNode(id,x,y,label); 
 		this.nodes[id] = ln;
 	}
 	public LNode getnode(int id){return nodes[id];}

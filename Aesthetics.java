@@ -311,13 +311,12 @@ class Aesthetics
 	}
 
 	public int cross_bends(int bundled_cross_ls){
-		ChannelColumns cc = pbf.getColumns();
 		int bends_cr;
 		
 		int cross_ls = get_cross_ls().size();
 		int bundled_edges = cross_ls-bundled_cross_ls;
 		bends_cr = cross_ls/2-bundled_edges;
-		
+		System.out.println(" cross_ls:"+cross_ls+" bundled_cross_ls:"+bundled_cross_ls);
 		return bends_cr;
 		
 	}

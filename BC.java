@@ -2,9 +2,21 @@ class BC{
 	private int []array;
 	private int pos;
 	private Hierarchical h;
+	
+	private int[] result;
+	private int min_crossings;
+	
+	private static int cases=0;
+	
+	int[] getarray(){return this.result;}
+	int min_cr(){return this.min_crossings;}
 	BC(Hierarchical h){
-		this.h=h;
 		int s=h.getchannels_num()-2;
+		
+		min_crossings = Integer.MAX_VALUE;
+		result = new int[s];
+		this.h=h;
+		
 		pos=s-1;
 		array = new int[s];
 		count(pos);
@@ -24,8 +36,25 @@ class BC{
 	
 	private void count(int pos){
 		if(pos==-1){
-			System.out.println(array_s());
+			//System.out.println(array_s());
 			//count crossings
+			h.setColumnsOrientation(array);
+			h.clearLGedges();
+			h.clearbends();
+			h.setCordinates();
+			
+			Aesthetics aesthetics= new Aesthetics(h);
+			
+			int cr_num = h.calcTotalCrosings(aesthetics);
+			cases++;
+			//System.out.print("No"+cases+" ");
+			if(cr_num<min_crossings){
+				min_crossings=cr_num;
+				for(int i=0;i<array.length;++i){
+					result[i]=array[i];
+				}
+				//System.out.println("min crossings:"+cr_num);
+			}
 			return;
 		}
 		if(array[pos]==0){

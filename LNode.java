@@ -21,11 +21,10 @@ public class LNode{
 	public double gety(){return p.gety();}
 	public void setx(double x){ p.setx(x);}
 	public void sety(double y){ p.sety(y);}
-	public LNode(int id,double x,double y){
+	public LNode(int id,double x,double y,String label){
 		this.id = id;
 		this.p = new Point(x,y);
 		this.label = "\""+id+"\"";
-		//System.out.println("LNode("+x+","+y+")");
 	}
 	public String getlabel(){return label;}
 	public String toString(){

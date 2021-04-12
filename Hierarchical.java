@@ -24,7 +24,7 @@ class Hierarchical{
 	LinkedList<LEdge> path_edges;
 	LinkedList<LEdge> []pathtransitive_edges;
 
-	Integer[] getx_c(){return x_c;}
+	MutInteger[] getx_c(){return x_c;}
 	
 	public Hierarchical(SimpleGraph G,LinkedList<Channel> decomposition){
 		this.G=G;
@@ -37,8 +37,8 @@ class Hierarchical{
 		
 		IVertex[]  array = new IVertex[G.getVertices().size()];
 		y_coordinates = new int[G.getVertices().size()];
-		x_coordinates = new Integer[G.getVertices().size()];
-		x_c = new Integer[decomposition.size()];
+		x_coordinates = new MutInteger[G.getVertices().size()];
+		x_c = new MutInteger[decomposition.size()];
 		channels_num = decomposition.size();
 		
 		
@@ -47,7 +47,7 @@ class Hierarchical{
 		pathtransitive_edges = new LinkedList[channels_num];
 		for(int i=0;i<channels_num;++i){
 			pathtransitive_edges[i] = new LinkedList<LEdge>();
-			x_c[i] = new Integer(i);
+			x_c[i] = new MutInteger(i);
 		}
 	
 		
@@ -66,7 +66,7 @@ class Hierarchical{
 		for(int i=0;i<array.length;++i){
 			double x = -1;//x_coordinates[i]*x_dist;
 			double y = -1;//y_coordinates[i]*y_dist;
-			LG.addnode_c((int)array[i].getId(),x,y);
+			LG.addnode_c((int)array[i].getId(),x,y,array[i].getLabel());
 		}
 		
 		for(int c=0;c<decomposition.size();++c){
@@ -95,21 +95,14 @@ class Hierarchical{
 						//undoLG.addedge(e);
 						path_edges.add(e);
 					}else{														//path transitive edge
-						int channel_index = x_coordinates[source]; 
-						pathtransitive_edges[channel_index].add(e);
+						MutInteger channel_index = x_coordinates[source]; 
+						pathtransitive_edges[channel_index.val()].add(e);
 					}					
 				}
 			}
 		}
 		
-		
-		
-		/*for(LinkedList<LEdge> l:pathtransitive_edges){
-			for(LEdge e:l){
-				System.out.print("("+e.getsourceId()+","+e.gettargetId()+")");
-			}
-			System.out.println("");
-		}*/
+
 		Intervals intervals = createIntervals(pathtransitive_edges);
 		columns = new ChannelColumns(channels_num);
 		for(int c=0;c<channels_num;++c){
@@ -129,24 +122,36 @@ class Hierarchical{
 			System.exit(0);
 		}
 		for(int tmp=0;tmp<i.length;++tmp){
-			x_c[tmp]=i[tmp];
+			x_c[tmp].set(i[tmp]);
 		}
 	}
 	void setColumnsOrientation(int[] i){
-		columns.setLeft(0);  //leftmost goes on the left
-		columns.setRight(channels_num-1); //rightmost goes on the right
-		for(int j=0;j<channels_num-2;++j){
+		if(i.length!=channels_num-2){System.out.println("Hierarchical:setColumnsOrientation:ERROR");System.exit(0);}
+		
+		int []mapping = new int[columns.getsize()];
+	
+		int index=0;
+		for(MutInteger mi:x_c){
+			mapping[mi.val()] = index;
+			index++;
+		}
+		columns.setLeft( mapping[0] );
+		columns.setRight( mapping[columns.getsize()-1] );
+	
+		for(int j=0;j<i.length;j++){
+			//System.out.println("--"+mapping[j+1]);
 			if(i[j]==1){
-				columns.setRight(j+1);
+				columns.setRight(mapping[j+1]);
 			}else{
-				columns.setLeft(j+1);
+				columns.setLeft(mapping[j+1]);
 			}
 		}
+		
 	}
 	void setCordinates(){
 		for(IVertex v:G.getVertices()){
 			int id = (int)v.getId();
-			double x = x_coordinates[id]*x_dist;
+			double x = x_coordinates[id].val()*x_dist;
 			double y = y_coordinates[id]*y_dist;
 			LG.getnode(id).setx(x);
 			LG.getnode(id).sety(y);
@@ -159,18 +164,26 @@ class Hierarchical{
 		for(LEdge e:cross_edges){
 			e.getbends().clear();
 		}
+		for(LinkedList<LEdge> l:pathtransitive_edges){
+			for(LEdge e:l){
+				e.getbends().clear();
+			}
+		}
+	}
+	void clearLGedges(){
+		LG.getEdges().clear();
 	}
 	private void CrossEdgesToLG( LinkedList<LEdge> cross_edges){
 		for(LEdge e:cross_edges){
 			int source = e.getsource().getId();
 			int target = e.gettarget().getId();
-			if(x_coordinates[source]<x_coordinates[target]){
-				double yfactor = (x_coordinates[target]-x_coordinates[source])*5;
+			if(x_coordinates[source].val()<x_coordinates[target].val()){
+				double yfactor = (x_coordinates[target].val()-x_coordinates[source].val())*5;
 				//e.addBend((x_coordinates[source]*x_dist + x_dist/2)-factor, y_coordinates[target]*y_dist-y_dist/2 );
-				e.addBend((x_coordinates[source]*x_dist + x_dist/2)-20, (y_coordinates[target]*y_dist-20)-yfactor );
+				e.addBend((x_coordinates[source].val()*x_dist + x_dist/2)-20, (y_coordinates[target]*y_dist-20)-yfactor );
 			}else{
-				double yfactor = (x_coordinates[source]-x_coordinates[target])*5;
-				e.addBend((x_coordinates[source]*x_dist - x_dist/2)+20 , (y_coordinates[target]*y_dist-20)- yfactor);
+				double yfactor = (x_coordinates[source].val()-x_coordinates[target].val())*5;
+				e.addBend((x_coordinates[source].val()*x_dist - x_dist/2)+20 , (y_coordinates[target]*y_dist-20)- yfactor);
 			} 
 			this.LG.addedge(e);
 		}
@@ -412,12 +425,12 @@ class Hierarchical{
 	
 	public static void print_gml(LGraph LG){
 		try {
-			File myObj = new File("filename.txt");
+			/*File myObj = new File("filename.txt");
 			if (myObj.createNewFile()) {
 				System.out.println("File created: " + myObj.getName());
 			} else {
 				System.out.println("File already exists.");
-			}
+			}*/
 			
 			String gml = "graph\n[\n\tdirected\t1\n";
 			
@@ -441,6 +454,31 @@ class Hierarchical{
 		}
 	}
 	
+	public static void print_gml(LGraph LG,String name,String Directory){
+		try {
+			
+			String gml = "graph\n[\n\tdirected\t1\n";
+			
+			for(int i=0;i<LG.getnodessize();++i){
+				gml+=LG.toString_n(i);
+			}
+			for(int i=0;i<LG.getedgessize();++i){
+				gml+=LG.toString_e(i);
+			}
+			
+			
+			gml+="]\n";
+			//System.out.println(gml);
+			FileWriter myWriter = new FileWriter(Directory+name);//"GMLoutput.gml");
+			myWriter.write(gml);
+			myWriter.close();
+			
+		} catch (IOException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+	}
+	
 	static LinkedList<LineSegment> concatanation_ls(LinkedList<LineSegment> l1,LinkedList<LineSegment> l2){
 		LinkedList<LineSegment> res = new LinkedList<LineSegment>();
 		for(LineSegment s:l1){
@@ -451,8 +489,121 @@ class Hierarchical{
 		}
 		return res;
 	}
-	public static void main(String[] args){
+	
+	void calcAesthetics(Aesthetics aesthetics){
+		//LinkedList<LineSegment> edges = concatanation_ls(aesthetics.get_pathtr_ls(),aesthetics.get_cross_ls());
+			LinkedList<LineSegment> bundled_ptr_ls = aesthetics.bundling( aesthetics.get_pathtr_ls() );
+			LinkedList<LineSegment> bundled_cr_ls = aesthetics.bundling( aesthetics.get_cross_ls() );
+			LinkedList<LineSegment> path_ls = aesthetics.get_path_ls();
+	
+			//cross-cross cross-path cross-pathtr pathtr-pathtr
+			int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);
+			System.out.println("cross-cross:"+cr_cr);
+			int cr_p=Aesthetics.countCrossings(bundled_cr_ls,path_ls);
+			System.out.println("cross-path:"+cr_p);
+			int cr_ptr = Aesthetics.countCrossings(bundled_cr_ls,bundled_ptr_ls);
+			System.out.println("cross-pathtr:"+cr_ptr);
+			int ptr_ptr=Aesthetics.countCrossings(bundled_ptr_ls);
+			System.out.println("pathtr-pathtr:"+ptr_ptr);
+			int total=ptr_ptr+cr_ptr+cr_p+cr_cr;
+			System.out.println("TOTAL CROSSINGS:"+total);
+			
+			
+			int p_b = aesthetics.pathtr_bends();
+			int c_b = aesthetics.cross_bends(bundled_cr_ls.size());
+			System.out.println("TOTAL BENDS p_b + c_b = "+p_b+" + "+c_b +" = "+(p_b+c_b));
+			int height = aesthetics.Height();
+			int width = aesthetics.Width();
+			System.out.println("Height:"+height);
+			System.out.println("Width:"+width);
+			System.out.println("Area:"+(height*width));
+	}
+	int calcTotalCrosings(Aesthetics aesthetics){
+		LinkedList<LineSegment> bundled_ptr_ls = aesthetics.bundling( aesthetics.get_pathtr_ls() );
+		LinkedList<LineSegment> bundled_cr_ls = aesthetics.bundling( aesthetics.get_cross_ls() );
+		LinkedList<LineSegment> path_ls = aesthetics.get_path_ls();
+
+		//cross-cross cross-path cross-pathtr pathtr-pathtr
+		int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);
+		int cr_p=Aesthetics.countCrossings(bundled_cr_ls,path_ls);
+		int cr_ptr = Aesthetics.countCrossings(bundled_cr_ls,bundled_ptr_ls);
+		int ptr_ptr=Aesthetics.countCrossings(bundled_ptr_ls);
+		int total=ptr_ptr+cr_ptr+cr_p+cr_cr;
+		//System.out.println("TOTAL CROSSINGS:"+total);
+		return total;
+	}
+	
+	static void mainTest(){
 		Reader r = new Reader();
+		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\inputgraphs");
+		LinkedList<File> files = new LinkedList<File>();
+		Main.listFilesForFolder(folder,files);
+		
+		
+		Heuristics h = new Heuristics();
+		
+		int graphs_num = 0;
+		
+		JSONinfo metrics = new JSONinfo();
+		
+		try {
+			for(File f: files) {
+				System.out.println("Processing: " + graphs_num +"/"+ files.size());
+				SimpleGraph G = r.read(f);
+				G.setAdjacency();
+				
+				Main.setTopologicalIds(G);
+				
+				LinkedList<Channel> decomposition = h.DAG_decomposition_Fulkerson(G);
+				
+				Hierarchical pbf = new Hierarchical(G,decomposition);
+				pbf.setCordinates();
+				
+				
+				Aesthetics aesthetics= new Aesthetics(pbf);
+			
+				LinkedList<LineSegment> bundled_ptr_ls = aesthetics.bundling( aesthetics.get_pathtr_ls() );
+				LinkedList<LineSegment> bundled_cr_ls = aesthetics.bundling( aesthetics.get_cross_ls() );
+				LinkedList<LineSegment> path_ls = aesthetics.get_path_ls();
+		
+				int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);
+				
+				int cr_p=Aesthetics.countCrossings(bundled_cr_ls,path_ls);
+				int cr_ptr = Aesthetics.countCrossings(bundled_cr_ls,bundled_ptr_ls);
+				int ptr_ptr=Aesthetics.countCrossings(bundled_ptr_ls);
+				int total_crossings=ptr_ptr+cr_ptr+cr_p+cr_cr;
+				
+				int p_b = aesthetics.pathtr_bends();
+				int c_b = aesthetics.cross_bends(bundled_cr_ls.size());
+				int total_bends = p_b+c_b;
+				
+				int height = aesthetics.Height();
+				int width = aesthetics.Width();
+				int erea = width*height;
+					
+				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
+				String fname = ""+f.getName()+"_b"+total_bends+"_c"+total_crossings+"_a"+erea+".gml";
+				
+				JSONObject g = new JSONObject(); 
+				JSONObject info = new JSONObject();
+				g.put(fname, info );
+				info.put("width",decomposition.size());
+				info.put("V",G.getVertices().size());
+				info.put("E",G.getEdges().size())
+				
+				
+				
+				print_gml(pbf.getLG(),fname,dir);
+				
+			}
+		}catch(Exception e){
+			System.out.println(e.toString());
+		}
+	}
+	
+	public static void main(String[] args){
+		mainTest();
+		/*Reader r = new Reader();
 		try{
 			final File f = new File("F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\inputGraph.txt");
 			SimpleGraph G = r.read(f);
@@ -460,35 +611,28 @@ class Hierarchical{
 			Main.setTopologicalIds(G);
 			Heuristics h = new Heuristics();
 			
-			LinkedList<Channel> decomposition = h.MyHeuristic(G,-1);
-			/*LinkedList<Channel> decomposition = new LinkedList<Channel>();
-			int i=0;
-			for(IVertex v: G.getVertices()){
-				Channel c = new Channel(G,i);
-				c.getVertices().add(v);
-				decomposition.add(c);
-				++i;
-			}*/
+			LinkedList<Channel> decomposition = h.DAG_decomposition_Fulkerson(G);
 			
 			Hierarchical pbf = new Hierarchical(G,decomposition);
-			int[] per = {0,1,3,2,4,5};
-			pbf.setx_c(per);
 			pbf.setCordinates();
 			
-			//Permutations permutation = new Permutations(pbf);
-			//permutation.permute( 0, pbf.getchannels_num()-1);
+			Permutations permutation = new Permutations(pbf);
+			
+			int[] per = permutation.get_opt_p();
+			pbf.setx_c(per);
+			int []or = permutation.get_opt_i_or();
+			pbf.setColumnsOrientation(or);
+			pbf.clearLGedges();
+			pbf.clearbends();
+			pbf.setCordinates();
 			
 			Aesthetics aesthetics= new Aesthetics(pbf);
-			//aesthetics.getLineSegments();
 			
 			//LinkedList<LineSegment> edges = concatanation_ls(aesthetics.get_pathtr_ls(),aesthetics.get_cross_ls());
 			LinkedList<LineSegment> bundled_ptr_ls = aesthetics.bundling( aesthetics.get_pathtr_ls() );
 			LinkedList<LineSegment> bundled_cr_ls = aesthetics.bundling( aesthetics.get_cross_ls() );
 			LinkedList<LineSegment> path_ls = aesthetics.get_path_ls();
-			
-			//System.out.println("hereeee"+bundled_cr_ls.size());
-			//System.out.println("hereeee"+bundled_ptr_ls.size());
-			//System.out.println("hereeee"+path_ls.size());
+	
 			//cross-cross cross-path cross-pathtr pathtr-pathtr
 			int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);
 			System.out.println("cross-cross:"+cr_cr);
@@ -517,6 +661,6 @@ class Hierarchical{
 			//pbf.printEdges();
 		}catch(Exception e) {
 			System.out.print(e);
-		}
+		}*/
 	}
 }
