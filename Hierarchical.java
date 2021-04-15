@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap; 
 
+import org.json.*;
 
 import graph.*;
 
@@ -544,7 +545,7 @@ class Hierarchical{
 		
 		int graphs_num = 0;
 		
-		JSONinfo metrics = new JSONinfo();
+		JSONObject metrics = new JSONObject();
 		
 		try {
 			for(File f: files) {
@@ -554,11 +555,24 @@ class Hierarchical{
 				
 				Main.setTopologicalIds(G);
 				
-				LinkedList<Channel> decomposition = h.DAG_decomposition_Fulkerson(G);
+				LinkedList<Channel> decomposition = h.Heuristic3(G);//DAG_decomposition_Fulkerson(G);
+				/*if(decomposition.size()>6){
+					continue;
+				}*/
 				
 				Hierarchical pbf = new Hierarchical(G,decomposition);
 				pbf.setCordinates();
 				
+				/*if(decomposition.size()>2){
+					Permutations permutation = new Permutations(pbf);
+					int[] per = permutation.get_opt_p();
+					pbf.setx_c(per);
+					int []or = permutation.get_opt_i_or();
+					pbf.setColumnsOrientation(or);
+					pbf.clearLGedges();
+					pbf.clearbends();
+					pbf.setCordinates();
+				}*/
 				
 				Aesthetics aesthetics= new Aesthetics(pbf);
 			
@@ -566,8 +580,7 @@ class Hierarchical{
 				LinkedList<LineSegment> bundled_cr_ls = aesthetics.bundling( aesthetics.get_cross_ls() );
 				LinkedList<LineSegment> path_ls = aesthetics.get_path_ls();
 		
-				int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);
-				
+				int cr_cr=Aesthetics.countCrossings(bundled_cr_ls);	
 				int cr_p=Aesthetics.countCrossings(bundled_cr_ls,path_ls);
 				int cr_ptr = Aesthetics.countCrossings(bundled_cr_ls,bundled_ptr_ls);
 				int ptr_ptr=Aesthetics.countCrossings(bundled_ptr_ls);
@@ -584,21 +597,50 @@ class Hierarchical{
 				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
 				String fname = ""+f.getName()+"_b"+total_bends+"_c"+total_crossings+"_a"+erea+".gml";
 				
-				JSONObject g = new JSONObject(); 
+				
 				JSONObject info = new JSONObject();
-				g.put(fname, info );
+				
 				info.put("width",decomposition.size());
 				info.put("V",G.getVertices().size());
-				info.put("E",G.getEdges().size())
+				info.put("E",G.getEdges().size());
 				
+				JSONObject bends = new JSONObject();
+				bends.put("TOTAL",total_bends);
+				bends.put("p_b",p_b);
+				bends.put("c_b",c_b);
+				info.put("bends",bends);
 				
+				JSONObject crossings = new JSONObject();
+				crossings.put("TOTAL",total_crossings);
+				crossings.put("cr_p",cr_p);
+				crossings.put("cr_ptr",cr_ptr);
+				crossings.put("cr_cr",cr_cr);
+				crossings.put("ptr_ptr",ptr_ptr);
+				info.put("crossings",crossings);
 				
+				JSONObject jerea = new JSONObject();
+				jerea.put("erea",erea);
+				jerea.put("width",width);
+				jerea.put("height",height);
+				info.put("erea",jerea);
+				
+				metrics.put(fname, info );
+			
 				print_gml(pbf.getLG(),fname,dir);
 				
 			}
 		}catch(Exception e){
+			System.out.println(e.toString()+"\n"+ e.getStackTrace()+"\nline:"+e.getStackTrace()[0].getLineNumber() );
+		}
+		
+		try{
+			FileWriter myWriter = new FileWriter("metrics.json");
+			myWriter.write(metrics.toString());
+			myWriter.close();
+		}catch(Exception e){
 			System.out.println(e.toString());
 		}
+		
 	}
 	
 	public static void main(String[] args){
