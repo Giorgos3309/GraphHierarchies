@@ -8,7 +8,7 @@ import org.json.*;
 
 import graph.*;
 
-class Hierarchical{
+class Hierarchical_v1{
 	private SimpleGraph G;
 	private int[] y_coordinates ;
 	private MutInteger [] x_coordinates ;
@@ -27,7 +27,7 @@ class Hierarchical{
 
 	MutInteger[] getx_c(){return x_c;}
 	
-	public Hierarchical(SimpleGraph G,LinkedList<Channel> decomposition){
+	public Hierarchical_v1(SimpleGraph G,LinkedList<Channel> decomposition){
 		this.G=G;
 		int benddist = 10;
 		vertices_num = G.getVertices().size();
@@ -107,7 +107,7 @@ class Hierarchical{
 	public int getchannels_num(){return this.channels_num;}
 	void setx_c(int []i){
 		if(i.length!=x_c.length){
-			System.out.println("ERROR:Hierarchical:setx_c");
+			System.out.println("ERROR:Hierarchical_v1:setx_c");
 			System.exit(0);
 		}
 		for(int tmp=0;tmp<i.length;++tmp){
@@ -115,7 +115,7 @@ class Hierarchical{
 		}
 	}
 	void setColumnsOrientation(int[] i){
-		if(i.length!=channels_num-2){System.out.println("Hierarchical:setColumnsOrientation:ERROR");System.exit(0);}
+		if(i.length!=channels_num-2){System.out.println("Hierarchical_v1:setColumnsOrientation:ERROR");System.exit(0);}
 		
 		int []mapping = new int[columns.getsize()];
 	
@@ -550,7 +550,7 @@ class Hierarchical{
 					continue;
 				}*/
 				
-				Hierarchical pbf = new Hierarchical(G,decomposition);
+				Hierarchical_v1 pbf = new Hierarchical_v1(G,decomposition);
 				pbf.setCordinates();
 				
 				/*if(decomposition.size()>2){
@@ -646,7 +646,7 @@ class Hierarchical{
 			
 			LinkedList<Channel> decomposition = h.DAG_decomposition_Fulkerson(G);
 			
-			Hierarchical pbf = new Hierarchical(G,decomposition);
+			Hierarchical_v1 pbf = new Hierarchical_v1(G,decomposition);
 			pbf.setCordinates();
 			
 			Permutations permutation = new Permutations(pbf);

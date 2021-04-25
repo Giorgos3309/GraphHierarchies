@@ -73,7 +73,8 @@ class Aesthetics
 						//System.out.println("bundled2: (["+p1.getx()+","+p1.gety()+"] ,["+q1.getx()+","+q1.gety()+"]))");
 					}else{
 						System.err.println("Aesthetics::bundling::error1");
-						System.exit(0);
+						System.err.println(p1+"\t"+q1+"\n"+p2+"\t"+q2);
+						//System.exit(0);
 					}
 					visited.add(s2);
 				}
@@ -316,7 +317,7 @@ class Aesthetics
 		int cross_ls = get_cross_ls().size();
 		int bundled_edges = cross_ls-bundled_cross_ls;
 		bends_cr = cross_ls/2-bundled_edges;
-		System.out.println(" cross_ls:"+cross_ls+" bundled_cross_ls:"+bundled_cross_ls);
+		//System.out.println(" cross_ls:"+cross_ls+" bundled_cross_ls:"+bundled_cross_ls);
 		return bends_cr;
 		
 	}
