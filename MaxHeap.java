@@ -155,6 +155,60 @@ public class MaxHeap {
         } 
     } */
   
+	public LinkedList<LEdge> extractMaxInDegree() 
+    { 
+		LinkedList<LEdge> interval = new LinkedList<LEdge>();
+		
+		if(size_i==0){return null;}
+        Hierarchical.IntervalNode poppedi = Heap_indegree[1];
+		Hierarchical.IntervalNode popped;
+	
+		//System.out.println("hereeeeee300\n");
+		popped = poppedi;
+		if(popped.getindegree()==0){return null;}
+		
+		Heap_indegree[1] = Heap_indegree[size_i--];
+		heapi_index_of.put(Heap_indegree[1].getId(),1);			
+		maxHeapify(1,true);
+		for(Hierarchical.IntervalEdge ie:popped.incoming){
+			//add free edges
+			if(ie.isVisited()==false){
+				interval.add(ie.e);
+			}
+			
+			ie.setVisited();
+			info.get(ie.getsourceId()).decrease_outd();
+		}
+		//System.out.println("hereeeeee400\n");
+	
+        return interval; 
+    }
+  
+  
+	public LinkedList<LEdge> extractMaxOutDegree() 
+    {
+		LinkedList<LEdge> interval = new LinkedList<LEdge>();
+		
+		if(size_o==0){return null;}
+		Hierarchical.IntervalNode poppedo = Heap_outdegree[1];
+		Hierarchical.IntervalNode popped;
+		popped = poppedo;
+		if(popped.getoutdegree()==0){return null;}
+		
+		Heap_outdegree[1] = Heap_outdegree[size_o--];
+		heapo_index_of.put(Heap_outdegree[1].getId(),1);
+		maxHeapify(1,false);
+		for(Hierarchical.IntervalEdge oe:popped.outgoing){
+			//add free edges
+			if(oe.isVisited()==false){
+				interval.add(oe.e);
+			}
+			
+			oe.setVisited();
+			info.get(oe.gettargetId()).decrease_ind();
+		}
+		return interval;
+	}
     // Remove an element from max heap 
     public LinkedList<LEdge> extractMax() 
     { 

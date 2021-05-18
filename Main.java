@@ -58,7 +58,7 @@ public class Main {
 		for(Channel C: decomposition) {
 			System.out.print(""+c_counter+" CHANNEL:");
 			for(IVertex iv: C.getVertices()){
-				System.out.print(" "+iv.getId());
+				System.out.print(" "+iv.getLabel());
 			}
 			System.out.println("");
 			c_counter=c_counter+1;
@@ -107,7 +107,7 @@ public class Main {
 		private String description;
 	}
 	
-	public static void setTopologicalIds(SimpleGraph G){
+	public static void setTopologicalIds(SimpleGraph G/*,HashMap<Integer,Integer> restore*/){
 		TopologicalSort ts = new TopologicalSort(G.getVertices().size());
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		int c=0;
@@ -126,9 +126,12 @@ public class Main {
 		
 		int counter = 0;
 		for(Integer i:l){
+			//System.out.println(""+counter+"  "+(int)array[i].getId());
+			//restore.put(counter,i);
 			array[i].setId(counter);
 			counter+=1;
 		}
+		
 	}
 	
 	public static void main(String[]args) {

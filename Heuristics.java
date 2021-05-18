@@ -18,6 +18,88 @@ public class Heuristics {
 		boolean isLast = false;
 		int channel_index=-1;
 	}
+	private IVertex DFS_look_up(SimpleGraph G,IVertex v/*,ConcatData[] cd*/, int[] adj_no){
+		Set<IVertex> visited = new HashSet<IVertex>();
+		LinkedList<IVertex> stack = new LinkedList<IVertex>();
+		stack.addFirst(v);
+		
+		while(stack.isEmpty()==false){
+			IVertex cur = stack.get(0);//stack.removeFirst();
+			int id = (int)cur.getId();
+			
+			if(!visited.contains(cur)){
+				System.out.println(cur.getLabel());
+				visited.add(cur);
+				continue;
+			}
+			if(adj_no[(int)cur.getId()]==-1){
+				System.out.println("-"+cur.getLabel());
+				stack.removeFirst();
+			}
+			for(int i=adj_no[(int)cur.getId()]; i>=0;--i ){
+				if( !visited.contains(cur.getAdjacentSources().get(i)) ){
+					stack.addFirst( cur.getAdjacentSources().get(i) );
+				}
+			}
+			--adj_no[id];
+		}
+		return null;
+	}
+	
+	private IVertex DFS_look_up(SimpleGraph G,IVertex v,boolean []isDeleted,ConcatData[] cd){
+		boolean []isVisited = new boolean[G.getVertices().size()];
+		//System.out.println( "hereeeeeeeee"+v.getLabel());
+		//isVisited[ (int)v.getId() ]=true;
+		IVertex res = DFS_look_up_util(v,isVisited,isDeleted,cd);
+		
+		return res;
+	}
+	
+	private IVertex DFS_look_up_util(IVertex v,boolean []isVisited,boolean []isDeleted,ConcatData[] cd){
+		int vid = (int)v.getId();
+		//System.out.println( "\t"+v.getLabel() );
+		if (cd[vid].isLast){
+			return v;
+		}
+		isVisited[(int)v.getId()]=true;
+		//System.out.println( v.getId() );
+		for(IVertex suc:v.getAdjacentSources()){
+			//System.out.println( suc.getId() );
+			int c_id = (int)suc.getId();
+			if(isVisited[c_id]==false && isDeleted[c_id]==false){
+				IVertex res = DFS_look_up_util(suc,isVisited,isDeleted,cd);
+				if(res!=null){
+					return res;
+				}
+			}
+		}
+		if(cd[vid].isLast==true){
+			isDeleted[(int)v.getId()] = true;
+		}
+		return null;
+	}
+	
+	/*private IVertex lookupPredecessorDFS(IVertex start,ConcatData[] cd,boolean []isDeleted){ //
+		LinkedList<IVertex> stack = new LinkedList<IVertex>();
+		Set<IVertex> visited = new HashSet<IVertex>();
+		visited.add(start);
+		stack.addFirst(start);			//stack.add();
+		while (!stack.isEmpty()) {		//
+			IVertex v = stack.removeFirst();		
+			for (IVertex c : v.getAdjacentSources()) {
+				if(visited.contains(c)){
+					continue;
+				}
+				if (cd[(int)c.getId()].isLast){
+					return c;
+				}
+				stack.addFirst(c);
+				visited.add(c);
+			}
+		}
+		return null;
+	}*/
+	
 	
 	private IVertex lookupPredecessorBFS(IVertex start,ConcatData[] cd){
 		LinkedList<IVertex> queue = new LinkedList<IVertex>();
@@ -886,6 +968,7 @@ public class Heuristics {
 	public LinkedList<Channel>  Heuristic3_Pred(SimpleGraph G,int depth) throws Exception{
 		LinkedList<Channel> decomposition = new LinkedList<Channel>();
 		IVertex[] array = new IVertex[G.getVertices().size()];
+		boolean []isDeleted = new boolean[G.getVertices().size()];
 		ConcatData[] cd = new ConcatData[G.getVertices().size()];
 		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
 		int[] od_counter = new int[G.getVertices().size()];//outdegree counter
@@ -907,7 +990,7 @@ public class Heuristics {
 			IVertex toAdd=null;
 			int min_outdegree=G.getEdges().size()+1;
 			boolean belongToC = false;
-			
+			//if((int)cur.getId()==3){System.out.println("3--->"+cd[(int)cur.getId()].channel_index);}
 			if(cd[(int)cur.getId()].channel_index!=-1){
 				belongToC=true;
 			}else{
@@ -922,7 +1005,10 @@ public class Heuristics {
 						}
 					}
 				}
+				//if((int)cur.getId()==3){System.out.println("3--->"+(toAdd==null));}
+				//for(boolean b:isDeleted){System.out.println(b);}
 				if(toAdd==null){
+					//toAdd = DFS_look_up(G,cur,isDeleted,cd);
 					toAdd = lookupPredecessorBFS(cur,cd,depth);
 				}
 			}
@@ -1151,4 +1237,47 @@ public class Heuristics {
 		//return tc.getvertices()-M;
 		return decomposition;
 	}
+	
+	public static void main(String[]args) {
+		//LinkedList<SimpleGraph>graphs2 = new LinkedList<SimpleGraph>();
+		Reader r = new Reader();
+		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\inputgraphs");
+		//LinkedList<String> filenames = new LinkedList<String>();
+		LinkedList<File> files = new LinkedList<File>();
+		//listFilesForFolder(folder,filenames);
+		Main.listFilesForFolder(folder,files);
+
+		Heuristics h = new Heuristics();
+		try{
+			int graphs_num = 0;
+			int counter = 0;
+			long sum=0;
+			for(File f: files) {
+				//System.out.println(""+(++counter)+":"+f.getName());
+				graphs_num +=1;
+				SimpleGraph G = r.read(f);
+				G.setAdjacency();
+				Main.setTopologicalIds(G);
+				long startTime = System.currentTimeMillis(); 
+				LinkedList<Channel> decomposition =  h.MyHeuristic(G,-1);//h.Heuristic3(G);//h.DAG_decomposition_Fulkerson(G);
+				long stopTime = System.currentTimeMillis();
+				sum+=(stopTime-startTime);
+				checkDecomposition(G,decomposition);
+				Main.printDecomposition(decomposition);
+				System.out.println(decomposition.size());
+
+				int[] adj_no = new int[ G.getVertices().size() ];
+				IVertex[] array = new IVertex[ G.getVertices().size() ];
+				for( IVertex v:G.getVertices() ){
+					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
+					array[Integer.valueOf(v.getLabel())]=v;
+				}
+				h.DFS_look_up(G,array[16],adj_no);
+			}
+			//	private IVertex DFS_look_up(SimpleGraph G,IVertex v/*,ConcatData[] cd*/, int[] adj_no){
+			System.out.println("time:"+sum);
+		}catch (Exception e) {  
+            e.printStackTrace();  
+        }
+	}		
 }

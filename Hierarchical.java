@@ -545,6 +545,8 @@ class Hierarchical{
 				
 				Main.setTopologicalIds(G);
 				
+				long startTime = System.currentTimeMillis();
+				
 				LinkedList<Channel> decomposition = h.DAG_decomposition_Fulkerson(G);//h.Heuristic3(G);//
 				/*if(decomposition.size()>6){
 					continue;
@@ -552,7 +554,9 @@ class Hierarchical{
 				
 				Hierarchical pbf = new Hierarchical(G,decomposition);
 				pbf.setCordinates();
-				
+				//long endTime = System.currentTimeMillis();
+				//this.duration = endTime - startTime;
+				//System.out.println("duration:"+(endTime - startTime));
 				/*if(decomposition.size()>2){
 					Permutations permutation = new Permutations(pbf);
 					int[] per = permutation.get_opt_p();
@@ -583,6 +587,10 @@ class Hierarchical{
 				int height = aesthetics.Height();
 				int width = aesthetics.Width();
 				int erea = width*height;
+				
+				long endTime = System.currentTimeMillis();
+				//this.duration = endTime - startTime;
+				System.out.println("duration:"+(endTime - startTime));
 					
 				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
 				String fname = ""+f.getName()+"_b"+total_bends+"_c"+total_crossings+"_a"+erea+".gml";
@@ -607,6 +615,7 @@ class Hierarchical{
 				crossings.put("cr_cr",cr_cr);
 				crossings.put("ptr_ptr",ptr_ptr);
 				info.put("crossings",crossings);
+				System.out.println("crossings:"+crossings);
 				
 				JSONObject jerea = new JSONObject();
 				jerea.put("erea",erea);

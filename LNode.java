@@ -21,10 +21,12 @@ public class LNode{
 	public double gety(){return p.gety();}
 	public void setx(double x){ p.setx(x);}
 	public void sety(double y){ p.sety(y);}
+	public void setId(int id){this.id=id;}
+	public void setLabel(int label){this.label=(""+label);}
 	public LNode(int id,double x,double y,String label){
 		this.id = id;
 		this.p = new Point(x,y);
-		this.label = "\""+id+"\"";
+		this.label = label;
 	}
 	public String getlabel(){return label;}
 	public String toString(){
@@ -32,7 +34,7 @@ public class LNode{
 		node+="\tnode\n\t[\n";
 		node+=("\t\tid\t"+this.getId()+"\n");
 		node+=("\t\ttemplate\t"+this.template+"\n");
-		node+=("\t\tlabel\t"+this.label+"\n");
+		node+=("\t\tlabel\t\""+this.label+"\"\n");
 		
 		node+=("\t\tgraphics\n\t\t[\n");
 		node+=("\t\t\tx\t"+this.getx()+"\n");

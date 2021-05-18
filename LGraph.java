@@ -15,6 +15,7 @@ public class LGraph{
 		this.nodes[id] = ln;
 	}
 	public LNode getnode(int id){return nodes[id];}
+	public LNode[] getnodes(){return nodes;}
 	public void addedge(LEdge e){
 		this.edges.add(e);
 	}
