@@ -2,6 +2,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.Queue;
+import java.util.HashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -11,33 +12,94 @@ import java.io.IOException;
 import graph.*;
 
 public class Heuristics {
-	
+	static IVertex[] array;
 	class ConcatData{
 		
 		boolean isFirst = false;
 		boolean isLast = false;
 		int channel_index=-1;
 	}
-	private IVertex DFS_look_up(SimpleGraph G,IVertex v/*,ConcatData[] cd*/, int[] adj_no){
+	private IVertex DFS_look_up_norec(SimpleGraph G,IVertex v,ConcatData[] cd, int[] adj_no,boolean []isDeleted){
 		Set<IVertex> visited = new HashSet<IVertex>();
 		LinkedList<IVertex> stack = new LinkedList<IVertex>();
+		
+		int id = (int)v.getId();
+		//visited.add(v);
+		IVertex res = null;
+		for(int i=adj_no[id]; i>=0;--i ){
+			IVertex tmp = v.getAdjacentSources().get(i);
+			if( !visited.contains(tmp) && isDeleted[(int)tmp.getId()]==false){
+				res=DFS_look_up_util_norec2(G,tmp,cd,adj_no,isDeleted,visited,stack);
+				if(res!=null){
+					//return res;
+					break;
+				}
+			}
+		}
+		return res;
+	}
+	private LinkedList<LinkedList<IVertex>>  DFS_look_up_norec_fastest(SimpleGraph G,IVertex v,ConcatData[] cd, int[] adj_no,boolean []isDeleted,int dfs_id,int[] DFS_ID,HashMap<Integer, DFS_rec> activeDFS){
+		Set<IVertex> visited = new HashSet<IVertex>();
+		//LinkedList<IVertex> stack = new LinkedList<IVertex>();
+		
+		int id = (int)v.getId();
+		//visited.add(v);
+		LinkedList<LinkedList<IVertex>> res = null;
+		System.out.println("START reverse dfs from vertex "+v.getLabel());
+		for(int i=adj_no[id]; i>=0;--i ){
+			IVertex tmp = v.getAdjacentSources().get(i);
+			if( !visited.contains(tmp) && isDeleted[(int)tmp.getId()]==false){
+				res=DFS_look_up_util_norec2_fastest(G,tmp,cd,adj_no,isDeleted,visited,DFS_ID,dfs_id,activeDFS);
+				if(res!=null){
+					//return res;
+					if(cd[id].isLast){
+						//don't add it 
+						DFS_ID[id]=0;
+					}else{
+						int dfsid=DFS_ID[(int)res.getLast().getLast().getId()];
+						res.getLast().addLast(v);
+						DFS_ID[id]=dfsid;
+					}
+					break;
+				}
+			}
+			adj_no[id]--;//keep it or not?-->probably yes
+		}
+		return res;
+	}
+	
+	/*private IVertex DFS_look_up_util_norec(SimpleGraph G,IVertex v,ConcatData[] cd, int[] adj_no,boolean []isDeleted,Set<IVertex> visited,LinkedList<IVertex> stack){
+		//Set<IVertex> visited = new HashSet<IVertex>();
+		//LinkedList<IVertex> stack = new LinkedList<IVertex>();
 		stack.addFirst(v);
 		
 		while(stack.isEmpty()==false){
 			IVertex cur = stack.get(0);//stack.removeFirst();
 			int id = (int)cur.getId();
+			System.out.println("cur:"+cur.getLabel());
+			if(isDeleted[id]==false){
+				if(cd[id].isLast==true){//and is the last vertex of a path
+					return cur;
+				}
+			}
 			
-			if(!visited.contains(cur)){
+			if(!visited.contains(cur)&&isDeleted[id]==false){
 				System.out.println(cur.getLabel());
 				visited.add(cur);
 				continue;
 			}
-			if(adj_no[(int)cur.getId()]==-1){
+			
+			
+			if(adj_no[id]==-1){
 				System.out.println("-"+cur.getLabel());
+				isDeleted[id] = true;
 				stack.removeFirst();
+				continue;
 			}
+			
 			for(int i=adj_no[(int)cur.getId()]; i>=0;--i ){
-				if( !visited.contains(cur.getAdjacentSources().get(i)) ){
+				IVertex tmp = cur.getAdjacentSources().get(i);
+				if( !visited.contains(tmp) && isDeleted[(int)tmp.getId()]==false){
 					stack.addFirst( cur.getAdjacentSources().get(i) );
 				}
 			}
@@ -45,6 +107,203 @@ public class Heuristics {
 		}
 		return null;
 	}
+*/
+	private IVertex DFS_look_up_util_norec2(SimpleGraph G,IVertex v,ConcatData[] cd, int[] adj_no,boolean []isDeleted,Set<IVertex> visited,LinkedList<IVertex> stack){		
+		LinkedList<IVertex> path = new LinkedList<IVertex>();
+		
+		path.addFirst(v);
+		
+		while(path.isEmpty()==false){
+			IVertex cur = path.get(0);
+			
+			int id = (int)cur.getId();
+			
+			if(!visited.contains(cur)&&isDeleted[id]==false){
+				if(cd[id].isLast==true){//and is the last vertex of a path
+					return cur;
+				}
+				visited.add(cur);
+			}
+
+			IVertex next = null;
+			
+			while(adj_no[id]>=0){
+				IVertex tmp = cur.getAdjacentSources().get(adj_no[id]);
+				--adj_no[id];
+				if( isDeleted[(int)tmp.getId()]==false ){
+					next = tmp;
+					++adj_no[id];
+					break;
+				}
+			}
+			 
+			if(next == null){
+				path.removeFirst();
+				isDeleted[id]=true;
+			}else{
+				path.addFirst(next);
+			}
+		}
+		return null;
+	}
+	
+	private LinkedList<LinkedList<IVertex>> DFS_look_up_util_norec2_fastest(SimpleGraph G,IVertex v,ConcatData[] cd, int[] adj_no,boolean []isDeleted,Set<IVertex> visited,int[] DFS_ID,int dfs_id,HashMap<Integer, DFS_rec> activeDFS){		
+		LinkedList<IVertex> path = new LinkedList<IVertex>();
+		LinkedList<LinkedList<IVertex>> pathStack = new LinkedList<LinkedList<IVertex>>();
+		LinkedList<IVertex> recoveryVertex=new LinkedList<IVertex>();
+		boolean haspath=true;
+		
+		if(DFS_ID[(int)v.getId()]==0){
+			DFS_ID[(int)v.getId()]= dfs_id;
+			path.addFirst(v);
+			pathStack.addFirst(path);
+			System.out.println("mark:"+v.getLabel()+" "+dfs_id);
+		}else{
+			dfs_id=DFS_ID[(int)v.getId()];
+			LinkedList<IVertex> tmp=activeDFS.get( DFS_ID[(int)v.getId()] ).getpath();
+			System.out.print("jump1 from "+v.getLabel()+" with dfsid="+dfs_id+ " curdfsid="+dfs_id +" to " );
+			if(tmp.isEmpty()==false){
+				System.out.println( tmp.getFirst().getLabel() );
+			}else{
+				System.out.println( "empty set" );
+			}
+			pathStack.addFirst(tmp);
+			
+			recoveryVertex.addFirst(v);
+			haspath=false;
+		}
+		
+		
+		//
+		while(pathStack.isEmpty()==false){
+			LinkedList<IVertex> s=pathStack.getFirst();
+			if(s.isEmpty()){
+				pathStack.removeFirst();
+			}
+			System.out.print("is empty the stack:"+s.isEmpty()+"\n\t");
+			for(IVertex tmpv:s){
+				System.out.print(tmpv.getLabel()+" ");
+			}
+			System.out.println("");
+			
+			while(s.isEmpty()==false){
+				IVertex cur = s.getFirst();
+				int id = (int)cur.getId();
+				
+				if(cd[id].isLast==true){//and is the last vertex of a path
+					//return path;  concatanation found
+					return pathStack;
+				}
+				visited.add(cur);
+				
+				IVertex next = null;
+			
+				while(adj_no[id]>=0){
+					IVertex tmp = cur.getAdjacentSources().get(adj_no[id]);
+					--adj_no[id];
+					if( isDeleted[(int)tmp.getId()]==false ){
+						next = tmp;
+						++adj_no[id];
+						break;
+					}
+				}
+				
+				if(next == null){
+					System.out.println("next==null: "+s.get(0).getLabel()+" is deleted ");
+					s.removeFirst();
+					isDeleted[id]=true;
+					if(recoveryVertex.isEmpty()==false){
+						if(cur==recoveryVertex.getFirst()){// the removed vertex was the recvertex
+							pathStack.removeFirst();
+							recoveryVertex.removeFirst();
+							System.out.print("\trecv ");
+							if(pathStack.isEmpty()==false){
+								System.out.println("\t prev:"+pathStack.get(0).get(0).getLabel() );
+								int pred_id=(int)pathStack.get(0).get(0).getId();
+								dfs_id=DFS_ID[ pred_id ];
+								//--adj_no[pred_id];
+							}
+							break;
+						}
+					}
+				}else{
+					int nextid = (int)next.getId();
+					System.out.println("next=="+next.getLabel());
+					//path.getFirst.addFirst();
+					if(DFS_ID[nextid]==0){
+						DFS_ID[nextid]= dfs_id;
+						s.addFirst(next);
+						System.out.println("mark:"+next.getLabel()+" "+dfs_id);
+					}else{
+						dfs_id=DFS_ID[nextid];
+						LinkedList<IVertex> tmp=activeDFS.get( DFS_ID[nextid] ).getpath();
+						//System.out.println("jump from "+cur.getLabel()+" to "+tmp.getFirst().getLabel() );
+						System.out.print("jump2 from "+cur.getLabel()+" with cur dfsid="+DFS_ID[(int)cur.getId()]+ " nextdfsid="+dfs_id +" to " );
+						if(tmp.isEmpty()==false){
+							System.out.println( tmp.getFirst().getLabel() );
+						}else{
+							System.out.println( "empty set" );
+							//if(cd[nextid].isLast==false){
+								isDeleted[nextid]=true;
+							//}
+						}
+						pathStack.addFirst(tmp);
+						recoveryVertex.addFirst(next);
+						break;
+					}
+				}
+				
+			}
+		}
+		
+/*		while(path.isEmpty()==false){	
+			IVertex cur = path.get(0);
+			
+			int id = (int)cur.getId();
+
+			
+			if(!visited.contains(cur)&&isDeleted[id]==false){
+				if(cd[id].isLast==true){//and is the last vertex of a path
+					return path;
+				}
+				visited.add(cur);
+			}
+
+			IVertex next = null;
+			
+			while(adj_no[id]>=0){
+				IVertex tmp = cur.getAdjacentSources().get(adj_no[id]);
+				--adj_no[id];
+				if( isDeleted[(int)tmp.getId()]==false ){
+					next = tmp;
+					++adj_no[id];
+					break;
+				}
+				
+			}
+			
+			if(next == null){
+				path.removeFirst();
+				isDeleted[id]=true;
+				//if the removed vertex was the recvertex
+				//	path.removeFirstStack();
+			}else{
+				//path.getFirst.addFirst();
+				path.addFirst(next);
+				if(DFS_ID[(int)next.getId()]==0){
+					DFS_ID[(int)next.getId()]= dfs_id;
+					System.out.println("mark:"+next.getLabel()+" "+dfs_id);
+				}else{
+					//while(DFS_ID[id]!=0){
+						System.out.println("jump:"+next.getLabel());
+					//}
+				}
+			}
+		}*/
+		return null;
+	}
+	
+	
 	
 	private IVertex DFS_look_up(SimpleGraph G,IVertex v,boolean []isDeleted,ConcatData[] cd){
 		boolean []isVisited = new boolean[G.getVertices().size()];
@@ -1008,6 +1267,7 @@ public class Heuristics {
 				//if((int)cur.getId()==3){System.out.println("3--->"+(toAdd==null));}
 				//for(boolean b:isDeleted){System.out.println(b);}
 				if(toAdd==null){
+					//toAdd = DFS_look_up_norec(G,cur,isDeleted,cd,adj_no);
 					//toAdd = DFS_look_up(G,cur,isDeleted,cd);
 					toAdd = lookupPredecessorBFS(cur,cd,depth);
 				}
@@ -1056,6 +1316,222 @@ public class Heuristics {
 		return decomposition;
 	}
 
+	// Like Heuristic3_Pred, use only the DFS_look_up_norec instead of BFS look up 
+	public LinkedList<Channel>  newMethod1(SimpleGraph G,int[] adj_no) throws Exception{
+		LinkedList<Channel> decomposition = new LinkedList<Channel>();
+		IVertex[] array = new IVertex[G.getVertices().size()];
+		boolean []isDeleted = new boolean[G.getVertices().size()];
+		ConcatData[] cd = new ConcatData[G.getVertices().size()];
+		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
+		int[] od_counter = new int[G.getVertices().size()];//outdegree counter
+		Queue<IVertex> queue = new LinkedList<>();
+		for(IVertex v: G.getVertices()){
+			int index = (int)v.getId();
+			array[index]=v;
+			od_counter[index]=v.getAdjacentTargets().size();
+			id_counter[index]=v.getAdjacentSources().size();
+			cd[index]=new ConcatData();
+			if(id_counter[index]==0){
+				queue.add(v);
+			}
+		}
+	
+		
+		while(queue.isEmpty()==false){
+			IVertex cur = queue.remove();
+			IVertex toAdd=null;
+			int min_outdegree=G.getEdges().size()+1;
+			boolean belongToC = false;
+			//if((int)cur.getId()==3){System.out.println("3--->"+cd[(int)cur.getId()].channel_index);}
+			if(cd[(int)cur.getId()].channel_index!=-1){
+				belongToC=true;
+			}else{
+				//chooses the vertex with the lowest outdegree if none of my predecessors has acquired it
+				for(IVertex tmp_v : cur.getAdjacentSources()){ //choose the immediate predecessor with the lowest outdegree
+					int tmp_index = (int)tmp_v.getId();
+					int ci = cd[tmp_index].channel_index;
+					if(decomposition.get(ci).getVertices().getLast()==tmp_v){
+						if(od_counter[tmp_index]<min_outdegree){
+							min_outdegree=od_counter[tmp_index];
+							toAdd=tmp_v;
+						}
+					}
+				}
+				if(toAdd==null&&cur.getAdjacentSources().size()!=0){
+					toAdd = DFS_look_up_norec(G,cur,cd,adj_no,isDeleted);
+				}
+			}
+			
+			if(toAdd!=null){
+				int ci = cd[(int)toAdd.getId()].channel_index;
+				cd[(int)cur.getId()].isLast=true;
+				cd[(int)toAdd.getId()].isLast=false;
+				decomposition.get(ci).addVertex(cur);
+				
+				cd[(int)cur.getId()].channel_index=ci;
+			}else if(!belongToC){
+				Channel C = new Channel(G,decomposition.size());
+				C.addVertex(cur);
+				cd[(int)cur.getId()].channel_index=decomposition.size();
+				cd[(int)cur.getId()].isFirst=true;
+				cd[(int)cur.getId()].isLast=true;
+				decomposition.add(C);
+			}
+			
+			boolean assignC = false;
+			for (IVertex tmp_v : cur.getAdjacentTargets()) {
+				int tmp_index = (int)tmp_v.getId();
+				--id_counter[tmp_index];
+				if(id_counter[tmp_index]==0){
+					queue.add(tmp_v);
+					//i have to reduce the od_counter here.?<--noo
+					/*for(IVertex tmp_s : tmp_v.getAdjacentSources()){
+						--od_counter[ (int)tmp_s.getId()];
+					}*/
+				}
+				
+				if(tmp_v.getAdjacentSources().size()==1 && !assignC){ //if indegree=1 then the vertex and his succesor belong to the same path
+					int index=cd[(int)cur.getId()].channel_index;
+					decomposition.get(index).getVertices().addLast(tmp_v);
+					cd[(int)tmp_v.getId()].channel_index=index;
+					cd[(int)tmp_v.getId()].isLast=true;
+					cd[(int)cur.getId()].isLast=false;
+					assignC=true;
+				}
+			}
+		}
+		
+		
+		return decomposition;
+	}
+
+	class DFS_rec{
+		private LinkedList<IVertex> path;
+		private DFS_rec jump;
+		DFS_rec( LinkedList<IVertex> path){
+			this.path=path;
+		}
+		public void setDFSjump(DFS_rec dfsjump){this.jump=dfsjump;}
+		public DFS_rec getDFSjump(){return this.jump;}
+		public LinkedList<IVertex> getpath(){return this.path;}
+	}
+// Like Heuristic3_Pred, use only the DFS_look_up_norec_fastest instead of BFS look up 
+	public LinkedList<Channel>  newMethod1_fastest(SimpleGraph G,int[] adj_no) throws Exception{
+		LinkedList<Channel> decomposition = new LinkedList<Channel>();
+		IVertex[] array = new IVertex[G.getVertices().size()];
+		
+		HashMap<Integer, DFS_rec> activeDFS = new HashMap<Integer, DFS_rec>();
+		int[] DFS_ID = new int[G.getVertices().size()];
+		int dfs_counter=1;
+		
+		boolean []isDeleted = new boolean[G.getVertices().size()];
+		ConcatData[] cd = new ConcatData[G.getVertices().size()];
+		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
+		int[] od_counter = new int[G.getVertices().size()];//outdegree counter
+		Queue<IVertex> queue = new LinkedList<>();
+		 
+		
+		for(IVertex v: G.getVertices()){
+			int index = (int)v.getId();
+			array[index]=v;
+			od_counter[index]=v.getAdjacentTargets().size();
+			id_counter[index]=v.getAdjacentSources().size();
+			cd[index]=new ConcatData();
+			if(id_counter[index]==0){
+				queue.add(v);
+			}
+		}
+	
+		
+		while(queue.isEmpty()==false){
+			IVertex cur = queue.remove();
+			IVertex toAdd=null;
+			int min_outdegree=G.getEdges().size()+1;
+			boolean belongToC = false;
+			//if((int)cur.getId()==3){System.out.println("3--->"+cd[(int)cur.getId()].channel_index);}
+			if(cd[(int)cur.getId()].channel_index!=-1){
+				belongToC=true;
+			}else{
+				//chooses the vertex with the lowest outdegree if none of my predecessors has acquired it
+				for(IVertex tmp_v : cur.getAdjacentSources()){ //choose the immediate predecessor with the lowest outdegree
+					int tmp_index = (int)tmp_v.getId();
+					int ci = cd[tmp_index].channel_index;
+					if(decomposition.get(ci).getVertices().getLast()==tmp_v){
+						if(od_counter[tmp_index]<min_outdegree){
+							min_outdegree=od_counter[tmp_index];
+							toAdd=tmp_v;
+						}
+					}
+				}
+				if(toAdd==null && cur.getAdjacentSources().size()!=0){
+					
+					LinkedList<LinkedList<IVertex>> pathStack=DFS_look_up_norec_fastest(G,cur,cd,adj_no,isDeleted,dfs_counter,DFS_ID,activeDFS);
+					LinkedList<IVertex> path=null;
+					if(pathStack!=null){
+						if(pathStack.isEmpty()==false){
+							path=pathStack.getFirst();//.getLast();
+							activeDFS.put(dfs_counter,new DFS_rec(path));
+						}
+					}
+					//activeDFS.put(dfs_counter,new DFS_rec(path));
+					dfs_counter++;
+					System.out.println("LOOK_UP started from:"+cur.getLabel());
+					if(path!=null){
+						//print path
+						System.out.print("\tpath:");
+						for(IVertex v:path){
+							System.out.print(" "+v.getLabel());
+						}
+						System.out.println("");
+						toAdd=path.getFirst();
+					}else{
+						System.out.println("\tpath:-");
+						toAdd=null;
+					}
+				}
+			}
+			
+			if(toAdd!=null){
+				int ci = cd[(int)toAdd.getId()].channel_index;
+				cd[(int)cur.getId()].isLast=true;
+				cd[(int)toAdd.getId()].isLast=false;
+				decomposition.get(ci).addVertex(cur);
+				
+				cd[(int)cur.getId()].channel_index=ci;
+			}else if(!belongToC){
+				Channel C = new Channel(G,decomposition.size());
+				C.addVertex(cur);
+				cd[(int)cur.getId()].channel_index=decomposition.size();
+				cd[(int)cur.getId()].isFirst=true;
+				cd[(int)cur.getId()].isLast=true;
+				decomposition.add(C);
+			}
+			
+			boolean assignC = false;
+			for (IVertex tmp_v : cur.getAdjacentTargets()) {
+				int tmp_index = (int)tmp_v.getId();
+				--id_counter[tmp_index];
+				if(id_counter[tmp_index]==0){
+					queue.add(tmp_v);
+					//i have to reduce the od_counter here.?<--noo
+					/*for(IVertex tmp_s : tmp_v.getAdjacentSources()){
+						--od_counter[ (int)tmp_s.getId()];
+					}*/
+				}
+				
+				if(tmp_v.getAdjacentSources().size()==1 && !assignC){ //if indegree=1 then the vertex and his succesor belong to the same path
+					int index=cd[(int)cur.getId()].channel_index;
+					decomposition.get(index).getVertices().addLast(tmp_v);
+					cd[(int)tmp_v.getId()].channel_index=index;
+					cd[(int)tmp_v.getId()].isLast=true;
+					cd[(int)cur.getId()].isLast=false;
+					assignC=true;
+				}
+			}
+		}
+		
+		return decomposition;
+	}
 
 	
 	public LinkedList<LinkedList<IVertex>> DAG_decomposition(SimpleGraph G) throws Exception{
@@ -1253,26 +1729,50 @@ public class Heuristics {
 			int counter = 0;
 			long sum=0;
 			for(File f: files) {
-				//System.out.println(""+(++counter)+":"+f.getName());
+				System.out.println(""+(++counter)+":"+f.getName());
 				graphs_num +=1;
 				SimpleGraph G = r.read(f);
 				G.setAdjacency();
 				Main.setTopologicalIds(G);
+				array = new IVertex[ G.getVertices().size() ];
+				int[] adj_no = new int[ G.getVertices().size() ];
+				for( IVertex v:G.getVertices() ){
+					array[(int)v.getId()] = v;
+					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
+				}
+				System.out.println("start processing");
 				long startTime = System.currentTimeMillis(); 
-				LinkedList<Channel> decomposition =  h.MyHeuristic(G,-1);//h.Heuristic3(G);//h.DAG_decomposition_Fulkerson(G);
+				LinkedList<Channel> decomposition =  h.newMethod1(G,adj_no);//h.MyHeuristic(G,-1);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
 				long stopTime = System.currentTimeMillis();
 				sum+=(stopTime-startTime);
-				checkDecomposition(G,decomposition);
 				Main.printDecomposition(decomposition);
-				System.out.println(decomposition.size());
-
+				System.out.println("finish processing");
+				System.out.println("dec size:"+decomposition.size());
+				if(checkDecomposition(G,decomposition)==false){
+					System.out.println(f);
+					System.exit(0);
+				}
+				
+				
+				/*IVertex[] array = new IVertex[ G.getVertices().size() ];
 				int[] adj_no = new int[ G.getVertices().size() ];
-				IVertex[] array = new IVertex[ G.getVertices().size() ];
 				for( IVertex v:G.getVertices() ){
 					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
 					array[Integer.valueOf(v.getLabel())]=v;
 				}
-				h.DFS_look_up(G,array[16],adj_no);
+				boolean []isDeleted = new boolean[G.getVertices().size()];
+				IVertex tmp1 = h.DFS_look_up(G,array[9],adj_no,isDeleted, array[1]);
+				IVertex tmp2 = h.DFS_look_up(G,array[20],adj_no,isDeleted,array[4]);
+				if(tmp1!=null){
+					System.out.println("res="+(int)tmp1.getId());
+				}else{
+					System.out.println("res=null");
+				}
+				if(tmp2!=null){
+					System.out.println("res="+(int)tmp2.getId());
+				}else{
+					System.out.println("res=null");
+				}*/
 			}
 			//	private IVertex DFS_look_up(SimpleGraph G,IVertex v/*,ConcatData[] cd*/, int[] adj_no){
 			System.out.println("time:"+sum);

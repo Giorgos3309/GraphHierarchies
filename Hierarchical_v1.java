@@ -25,7 +25,7 @@ class Hierarchical_v1{
 	private int vertices_num;
 	
 	final double y_dist=80.0;
-	final double col_dist = 15.0;
+	final double col_dist = 20.0;
 	
 	LinkedList<LEdge> cross_edges;
 	LinkedList<LEdge> path_edges;
@@ -635,14 +635,17 @@ class Hierarchical_v1{
 				HashMap<Integer, Integer> restoreIds = new HashMap<Integer, Integer>();
 				Main.setTopologicalIds(G);
 				//System.out.println("Processing");
-				
-				LinkedList<Channel> decomposition = h.MyHeuristic(G,-1);//h.DAG_decomposition_Fulkerson(G);
+				int[] adj_no = new int[ G.getVertices().size() ];
+				for( IVertex v:G.getVertices() ){
+					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
+				}
+				LinkedList<Channel> decomposition = h.newMethod1(G,adj_no);//h.MyHeuristic(G,-1);//h.DAG_decomposition_Fulkerson(G);
 				//System.out.println(decomposition.size());
 				Main.printDecomposition(decomposition);
 				Hierarchical_v1 pbf = new Hierarchical_v1(G,decomposition);
-				//System.out.println("Processing1");
+				System.out.println("Processing1");
 				pbf.setCordinates();
-				//System.out.println("Processing2");
+				System.out.println("Processing2");
 				
 				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
 				String fname = ""+f.getName()+".gml";

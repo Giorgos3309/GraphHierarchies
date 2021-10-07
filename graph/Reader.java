@@ -29,7 +29,7 @@ public class Reader {
 			while(line.contains("Node")){
 				String[]temp =line.split(" ");
 				int nodeId = Integer.parseInt(temp[1]);
-				G.add(new Vertex(nodeId,""));
+				G.add(new Vertex(nodeId,""+nodeId));
 				line = bufferedReader.readLine();
 			}
 			//System.out.print("-letti i vertici");
@@ -38,14 +38,21 @@ public class Reader {
 				array[(int)v.getId()]=v;
 			}
 			//System.out.print("-creato l'array");
-			bufferedReader.readLine();
 			line=bufferedReader.readLine();
+			//System.out.println(line);
+			if( line.contains("dge") ){
+				line=bufferedReader.readLine();
+			}
+			if( line.equals("") ){
+				line=bufferedReader.readLine();
+			}
 			//IMPORTANT: the adjacency_matrix is needed only if the graph have multiple edges. 
 			//Not with NetworkX graphs, but yes with PathBased graphs.
 			int[][]adjacency_matrix= new int[G.getVertices().size()][G.getVertices().size()];
 			//System.out.print("-creata l'adjacency matrix");
 			//int count =0;
 			while(line!=null){
+				//System.out.println(line);
 				String[]temp1=line.split(",");
 				int idVertex1=Integer.parseInt(temp1[1]);
 				int idVertex2=Integer.parseInt(temp1[2]);
