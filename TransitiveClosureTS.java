@@ -26,6 +26,7 @@ class TransitiveClosureTS{
 	}
 
 	void DFS_util(IVertex v,boolean []isVisited){
+		//boolean []isVisited = new boolean[G.getVertices().size()];
 		isVisited[(int)v.getId()]=true;
 		System.out.println( v.getId() );
 		for(IVertex suc:v.getAdjacentTargets()){

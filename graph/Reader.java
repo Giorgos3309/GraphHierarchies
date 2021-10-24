@@ -48,7 +48,7 @@ public class Reader {
 			}
 			//IMPORTANT: the adjacency_matrix is needed only if the graph have multiple edges. 
 			//Not with NetworkX graphs, but yes with PathBased graphs.
-			int[][]adjacency_matrix= new int[G.getVertices().size()][G.getVertices().size()];
+			//int[][]adjacency_matrix= new int[G.getVertices().size()][G.getVertices().size()];
 			//System.out.print("-creata l'adjacency matrix");
 			//int count =0;
 			while(line!=null){
@@ -58,11 +58,11 @@ public class Reader {
 				int idVertex2=Integer.parseInt(temp1[2]);
 				IVertex v1=array[idVertex1];
 				IVertex v2=array[idVertex2];
-				if(adjacency_matrix[(int)v1.getId()][(int)v2.getId()]==0) {
-					adjacency_matrix[(int)v1.getId()][(int)v2.getId()]=1;
+				//if(adjacency_matrix[(int)v1.getId()][(int)v2.getId()]==0) {
+					//adjacency_matrix[(int)v1.getId()][(int)v2.getId()]=1;
 					G.add(new Edge(v1,v2));
 					//count++;
-				}
+				//}
 				line= bufferedReader.readLine();
 				//System.out.println(line);
 			}

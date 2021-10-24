@@ -107,7 +107,7 @@ public class Main {
 		private String description;
 	}
 	
-	public static void setTopologicalIds(SimpleGraph G/*,HashMap<Integer,Integer> restore*/){
+	public static IVertex[] setTopologicalIds(SimpleGraph G/*,HashMap<Integer,Integer> restore*/){
 		TopologicalSort ts = new TopologicalSort(G.getVertices().size());
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		int c=0;
@@ -124,13 +124,18 @@ public class Main {
 		}
 		LinkedList<Integer> l=ts.topologicalSort();
 		
+		IVertex[] sorting = new IVertex[l.size()];
+		for(int i=0;i<l.size();++i){
+			sorting[i]=array[l.get(i)];
+		}
+		
 		int counter = 0;
-		for(Integer i:l){
-			//System.out.println(""+counter+"  "+(int)array[i].getId());
-			//restore.put(counter,i);
+		for(Integer i:l){ //to be removed
 			array[i].setId(counter);
 			counter+=1;
 		}
+		
+		return sorting;
 		
 	}
 	

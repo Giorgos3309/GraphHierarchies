@@ -639,13 +639,16 @@ class Hierarchical_v1{
 				for( IVertex v:G.getVertices() ){
 					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
 				}
+				long startTime = System.currentTimeMillis();
 				LinkedList<Channel> decomposition = h.newMethod1(G,adj_no);//h.MyHeuristic(G,-1);//h.DAG_decomposition_Fulkerson(G);
 				//System.out.println(decomposition.size());
-				Main.printDecomposition(decomposition);
+				//Main.printDecomposition(decomposition);
 				Hierarchical_v1 pbf = new Hierarchical_v1(G,decomposition);
-				System.out.println("Processing1");
+				//System.out.println("Processing1");
 				pbf.setCordinates();
-				System.out.println("Processing2");
+				//System.out.println("Processing2");
+				long endTime = System.currentTimeMillis();
+				System.out.println(f.getName()+" duration:"+(endTime - startTime));
 				
 				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
 				String fname = ""+f.getName()+".gml";

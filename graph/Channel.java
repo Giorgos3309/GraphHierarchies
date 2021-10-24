@@ -6,10 +6,10 @@ import java.util.LinkedList;
 public class Channel {
 	private int id;
 	private LinkedList<IVertex> vertices = new LinkedList<IVertex>();
-	private SimpleGraph G;
+	//private SimpleGraph G;
 	
-	public Channel (SimpleGraph G, int id){
-		this.G=G;
+	public Channel (/*SimpleGraph G,*/ int id){
+		//this.G=G;
 		this.id = id;
 	}
 	

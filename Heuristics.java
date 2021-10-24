@@ -707,7 +707,7 @@ public class Heuristics {
 	
 	public LinkedList<Channel>  Heuristic1(SimpleGraph G) throws Exception{
 		LinkedList<Channel> decomposition = new LinkedList<Channel>();
-		decomposition.add(new Channel(G,0));
+		decomposition.add(new Channel(0));
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		for(IVertex v: G.getVertices()){
 			array[(int)v.getId()]=v;
@@ -740,7 +740,7 @@ public class Heuristics {
     			j++;
     		}
 			if(!b) {
-    			Channel C_new = new Channel(G, decomposition.size());
+    			Channel C_new = new Channel( decomposition.size());
     			C_new.addVertex(v);
     			decomposition.addLast(C_new);
     		}
@@ -752,7 +752,7 @@ public class Heuristics {
 	
 		public LinkedList<Channel>  Heuristic1_v2_ts(SimpleGraph G) throws Exception{
 		LinkedList<Channel> decomposition = new LinkedList<Channel>();
-		decomposition.add(new Channel(G,0));
+		decomposition.add(new Channel(0));
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		ConcatData[] cd = new ConcatData[G.getVertices().size()]; 
 		for(IVertex v: G.getVertices()){
@@ -785,7 +785,7 @@ public class Heuristics {
 			if(pos!=-1){
 				decomposition.get(pos).addVertex(v);
 			}else{
-    			Channel C_new = new Channel(G, decomposition.size());
+    			Channel C_new = new Channel( decomposition.size());
     			C_new.addVertex(v);
 				cd[(int)v.getId()].channel_index=decomposition.size();
     			decomposition.addLast(C_new);
@@ -800,7 +800,7 @@ public class Heuristics {
 
 	public LinkedList<Channel>  NodeOrderHeuristic_P(SimpleGraph G,int depth) throws Exception{
 		LinkedList<Channel> decomposition = new LinkedList<Channel>();
-		decomposition.add(new Channel(G,0));
+		decomposition.add(new Channel(0));
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		ConcatData[] cd = new ConcatData[G.getVertices().size()]; 
 		for(IVertex v: G.getVertices()){
@@ -839,7 +839,7 @@ public class Heuristics {
 				}
 			}
 			if(!b) {
-    			Channel C_new = new Channel(G, decomposition.size());
+    			Channel C_new = new Channel( decomposition.size());
     			C_new.addVertex(v);
 				cd[(int)v.getId()].channel_index=decomposition.size();
 				cd[(int)v.getId()].isFirst=true;
@@ -857,7 +857,7 @@ public class Heuristics {
 
 	public LinkedList<Channel>  NodeOrderHeuristic_ImP(SimpleGraph G) throws Exception{
 		LinkedList<Channel> decomposition = new LinkedList<Channel>();
-		decomposition.add(new Channel(G,0));
+		decomposition.add(new Channel(0));
 		IVertex[] array = new IVertex[G.getVertices().size()];
 		ConcatData[] cd = new ConcatData[G.getVertices().size()]; 
 		for(IVertex v: G.getVertices()){
@@ -890,7 +890,7 @@ public class Heuristics {
 				if(b){break;}
     		}
 			if(!b) {
-    			Channel C_new = new Channel(G, decomposition.size());
+    			Channel C_new = new Channel( decomposition.size());
     			C_new.addVertex(v);
 				cd[(int)v.getId()].channel_index=decomposition.size();
     			decomposition.addLast(C_new);
@@ -918,7 +918,7 @@ public class Heuristics {
 		while(i<G.getVertices().size()) {
     		IVertex start = array[i];
     		if(!start.getVisited()) {
-    			Channel C = new Channel(G,i);
+    			Channel C = new Channel(i);
     			decomposition.add(C);
     			C.addVertex(start);
     			start.setVisited(true);
@@ -983,7 +983,7 @@ public class Heuristics {
 		while(i<G.getVertices().size()) {
     		IVertex start = array[i];
     		if(!start.getVisited() /*!visited[(int)start.getId()]*/   ) {
-    			Channel C = new Channel(G,i);
+    			Channel C = new Channel(i);
 				C.addVertex(start);
 				cd[(int)start.getId()].channel_index=decomposition.size();
     			decomposition.add(C);
@@ -1042,7 +1042,7 @@ public class Heuristics {
 		while(i<G.getVertices().size()) {
     		IVertex start = array[i];
     		if(!start.getVisited() /*!visited[(int)start.getId()]*/) {
-    			Channel C = new Channel(G,i);
+    			Channel C = new Channel(i);
 				C.addVertex(start);
 				cd[(int)start.getId()].channel_index=decomposition.size();
     			decomposition.add(C);
@@ -1104,7 +1104,7 @@ public class Heuristics {
 	while(i<G.getVertices().size()) {
 		IVertex start = array[i];
 		if(!start.getVisited()) {
-			Channel C = new Channel(G,i);
+			Channel C = new Channel(i);
 			C.addVertex(start);
 			cd[(int)start.getId()].channel_index=decomposition.size();
 			decomposition.add(C);
@@ -1196,7 +1196,7 @@ public class Heuristics {
 				
 				cd[(int)cur.getId()].channel_index=ci;
 			}else if(!belongToC){
-				Channel C = new Channel(G,decomposition.size());
+				Channel C = new Channel(decomposition.size());
 				C.addVertex(cur);
 				cd[(int)cur.getId()].channel_index=decomposition.size();
 				decomposition.add(C);
@@ -1281,7 +1281,7 @@ public class Heuristics {
 				
 				cd[(int)cur.getId()].channel_index=ci;
 			}else if(!belongToC){
-				Channel C = new Channel(G,decomposition.size());
+				Channel C = new Channel(decomposition.size());
 				C.addVertex(cur);
 				cd[(int)cur.getId()].channel_index=decomposition.size();
 				cd[(int)cur.getId()].isFirst=true;
@@ -1370,7 +1370,7 @@ public class Heuristics {
 				
 				cd[(int)cur.getId()].channel_index=ci;
 			}else if(!belongToC){
-				Channel C = new Channel(G,decomposition.size());
+				Channel C = new Channel(decomposition.size());
 				C.addVertex(cur);
 				cd[(int)cur.getId()].channel_index=decomposition.size();
 				cd[(int)cur.getId()].isFirst=true;
@@ -1499,7 +1499,7 @@ public class Heuristics {
 				
 				cd[(int)cur.getId()].channel_index=ci;
 			}else if(!belongToC){
-				Channel C = new Channel(G,decomposition.size());
+				Channel C = new Channel(decomposition.size());
 				C.addVertex(cur);
 				cd[(int)cur.getId()].channel_index=decomposition.size();
 				cd[(int)cur.getId()].isFirst=true;
@@ -1679,7 +1679,7 @@ public class Heuristics {
 		for(int i=1;i<tc.getvertices()+1;++i){
 			if(left_side[i]!=0){
 				//System.out.println("");
-				Channel channel = new Channel(G,decomposition.size());
+				Channel channel = new Channel(decomposition.size());
 				int tmp = left_side[i];
 				visited[i]=true;
 				channel.addVertex(vertices_array[i-1]);
@@ -1698,7 +1698,7 @@ public class Heuristics {
 			}else{
 				//System.out.println("HERE: "+i+" "+visited[i]);
 				if(visited[i]==false){
-					Channel channel = new Channel(G,decomposition.size());
+					Channel channel = new Channel(decomposition.size());
 					visited[i]=true;
 					//System.out.println("\nFULKERSON: "+i);
 					channel.addVertex( vertices_array[i-1] );
