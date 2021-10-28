@@ -11,13 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import graph.*;
-class HVertex{
-		//boolean isFirst = false;
-		//boolean isLast = false;
-		HashMap<Integer, IVertex> isFirst = new HashMap<Integer, IVertex>();
-		HashMap<Integer, IVertex> isLast = new HashMap<Integer, IVertex>();
-		int channel_index=-1;
-}
+
 public class Heuristics_v0 {
 	private SimpleGraph G;
 	private IVertex[] ts;
@@ -26,8 +20,8 @@ public class Heuristics_v0 {
 	
 	
 	private Channel []VertexChannel;
-	private HashMap<Integer, Integer> isFirst = new HashMap<Integer, Integer>();
-	private HashMap<Integer, Integer> isLast = new HashMap<Integer, Integer>();
+	//private HashMap<Integer, Integer> isFirst = new HashMap<Integer, Integer>();
+	//private HashMap<Integer, Integer> isLast = new HashMap<Integer, Integer>();
 	
 	Heuristics_v0(SimpleGraph G,IVertex[] ts){
 		this.G=G;
@@ -35,7 +29,7 @@ public class Heuristics_v0 {
 		VertexChannel = new Channel[ts.length];
 	}
 	
-	Integer DFS_LookUp(IVertex start,boolean []isDeleted,ListIterator[] sources){
+	Integer DFS_LookUp(IVertex start,boolean []isDeleted,ListIterator[] sources,HashMap<Integer, Integer> isLast){
 		LinkedList<IVertex> stack=new LinkedList<IVertex>();
 		stack.add(start);
 		while(!stack.isEmpty()){
@@ -97,6 +91,17 @@ public class Heuristics_v0 {
 			sources[(int)v.getId()]=v.getAdjacentSources().listIterator();
 		}
 		
+		HashMap<Integer, Integer> isLast = new HashMap<Integer, Integer>();
+		int channel_no=0;
+		for(Channel c:path_decomposition){
+			//IVertex f = c.getVertices().getFirst();
+			IVertex l = c.getVertices().getLast();
+			//isFirst.put(  (int)f.getId()  , channel_no ) ;
+			isLast.put(    (int)l.getId() , channel_no );
+			//System.out.println("isLast "+l.getLabel()+":"+isLast.get((int)l.getId()));
+			channel_no++;
+		}
+		
 		Integer []next_path=new Integer[path_decomposition.size()];
 		Integer []prev_path=new Integer[path_decomposition.size()];
 		int path_index=0;
@@ -104,7 +109,7 @@ public class Heuristics_v0 {
 			IVertex fv = path.getVertices().getFirst();
 			for(IVertex s:fv.getAdjacentSources()){
 				//System.out.println("look up start from "+s.getLabel()+" root:"+fv.getLabel());
-				Integer pred_path_index=DFS_LookUp(s,isDeleted,sources);
+				Integer pred_path_index=DFS_LookUp(s,isDeleted,sources,isLast);
 				//System.out.println("look up finished");
 				if(pred_path_index!=null){
 					prev_path[path_index] = pred_path_index;
@@ -164,14 +169,14 @@ public class Heuristics_v0 {
 	
 	public LinkedList<Channel>  NodeOrderHeuristic_ImP() throws Exception{
 		this.ts=ts;
-		LinkedList<Channel> decomposition = new LinkedList<Channel>();
+		decomposition = new LinkedList<Channel>();
 		Channel first_c=new Channel(0);
 		first_c.addVertex(ts[0]);
 		int f_id=(int)ts[0].getId();
 		this.VertexChannel[f_id]=first_c;
 		decomposition.add(first_c);
-		this.isLast.put(f_id,0);
-		this.isFirst.put(f_id,0);
+		//this.isLast.put(f_id,0);
+		//this.isFirst.put(f_id,0);
 		for(int i=1;i<G.getVertices().size();++i){
     		IVertex v = ts[i];
 			int v_id=(int)v.getId();
@@ -247,7 +252,7 @@ public class Heuristics_v0 {
 			i++;
 		}
 		
-		int channel_no=0;
+		/*int channel_no=0;
 		for(Channel c:decomposition){
 			IVertex f = c.getVertices().getFirst();
 			IVertex l = c.getVertices().getLast();
@@ -255,7 +260,7 @@ public class Heuristics_v0 {
 			isLast.put(    (int)l.getId() , channel_no );
 			//System.out.println("isLast "+l.getLabel()+":"+isLast.get((int)l.getId()));
 			channel_no++;
-		}
+		}*/
 		
 		return decomposition;
 	}
@@ -317,7 +322,7 @@ public class Heuristics_v0 {
 				decomposition_time=(stopTime-startTime);
 				System.out.println("NodeOrderHeuristic: dec size: "+decompositionNO.size()+ " time:"+decomposition_time);
 				startTime = System.currentTimeMillis();
-				NO.concatenation(decomposition);
+				NO.concatenation(decompositionNO);
 				stopTime = System.currentTimeMillis();
 				System.out.println("concatenation:  channels:"+h_v0.channels_num()+" time:"+(stopTime-startTime)+" agregate time:"+decomposition_time+(stopTime-startTime));
 				
