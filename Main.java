@@ -9,6 +9,7 @@ import graph.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Queue;
 
 
 public class Main {
@@ -116,19 +117,21 @@ public class Main {
 			array[index] = v;
 			c++;
 		}
-		
 		for( IEdge e:G.getEdges() ){ 
 			int source=(int)e.getSource().getId();
 			int target=(int)e.getTarget().getId();
 			ts.addEdge(source,target);
 		}
 		LinkedList<Integer> l=ts.topologicalSort();
-		
 		IVertex[] sorting = new IVertex[l.size()];
-		for(int i=0;i<l.size();++i){
-			sorting[i]=array[l.get(i)];
+		//for(int i=0;i<l.size();++i){
+		//	sorting[i]=array[l.get(i)];
+		//}
+		int tmp=0;
+		for(int i:l){
+			sorting[tmp]=array[i];
+			++tmp;
 		}
-		
 		int counter = 0;
 		for(Integer i:l){ //to be removed
 			array[i].setId(counter);
@@ -137,6 +140,38 @@ public class Main {
 		
 		return sorting;
 		
+	}
+	public static IVertex[] setTopologicalIdsLayered(SimpleGraph G/*,HashMap<Integer,Integer> restore*/){
+		int[] id_counter = new int[G.getVertices().size()]; //indegree counter
+		Queue<IVertex> queue = new LinkedList<>();
+		IVertex []sorting=new IVertex[G.getVertices().size()];
+		int top_rank=0;
+		for(IVertex v: G.getVertices()){
+			int index = (int)v.getId();
+			id_counter[index]=v.getAdjacentSources().size();
+			if(id_counter[index]==0){
+				queue.add(v);
+				
+				v.setId(top_rank);
+				sorting[top_rank]=v;
+				top_rank++;
+			}
+		}
+		while(queue.isEmpty()==false){
+			IVertex cur = queue.remove();
+			for (IVertex tmp_v : cur.getAdjacentTargets()) {
+				int tmp_index = (int)tmp_v.getId();
+				--id_counter[tmp_index];
+				if(id_counter[tmp_index]==0){
+					queue.add(tmp_v);
+					
+					tmp_v.setId(top_rank);
+					sorting[top_rank]=tmp_v;
+					top_rank++;
+				}
+			}
+		}
+		return sorting;
 	}
 	
 	public static void main(String[]args) {

@@ -152,7 +152,7 @@ class IndexingScheme{
 	public static void main(String[]args) {
 		//LinkedList<SimpleGraph>graphs2 = new LinkedList<SimpleGraph>();
 		Reader r = new Reader();
-		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\inputgraphs");
+		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\java\\inputgraphs");
 		//LinkedList<String> filenames = new LinkedList<String>();
 		LinkedList<File> files = new LinkedList<File>();
 		//listFilesForFolder(folder,filenames);
@@ -176,39 +176,40 @@ class IndexingScheme{
 				graphs_num +=1;
 				SimpleGraph G = r.read(f);
 				G.setAdjacency();
-				Main.setTopologicalIds(G);
+				IVertex[] ts = Main.setTopologicalIds(G);
+				Heuristics_v0 hnew = new Heuristics_v0(G,ts);
 				
 				//for(IVertex v:G.getVertices()){
 				//	System.out.println("ID: "+v.getId()+" LABEL:"+v.getLabel());
 				//}
 				
-				System.out.println("G(n="+G.getVertices().size()+" , m="+G.getEdges().size());
+				System.out.println("G(n="+G.getVertices().size()+" , m="+G.getEdges().size()+")");
 				IVertex []array = new IVertex[ G.getVertices().size() ];
-				int[] adj_no = new int[ G.getVertices().size() ];
+				//int[] adj_no = new int[ G.getVertices().size() ];
 				for( IVertex v:G.getVertices() ){
 					array[(int)v.getId()] = v;
-					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
+					//adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
 				}
-				//System.out.println("start processing");
+				System.out.println("start processing");
 				long startTime = System.currentTimeMillis(); 
-				LinkedList<Channel> decomposition = h.NodeOrderHeuristic_ImP(G);//h.MyHeuristic(G,0);//h.newMethod1(G,adj_no);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
+				LinkedList<Channel> decomposition = hnew.NodeOrderHeuristic_ImP();//h.MyHeuristic(G,0);//h.newMethod1(G,adj_no);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
 				long stopTime = System.currentTimeMillis();
 				decomposition_time+=(stopTime-startTime);
 				System.out.println("dec size:"+decomposition.size()+ " time:"+decomposition_time);
 				//Main.printDecomposition(decomposition);
 				System.out.println("finish processing");
-				System.gc();
-				System.out.println("gc finish processing");
-				//LinkedList<Channel> decomposition_f=h.DAG_decomposition_Fulkerson(G);
+				//System.gc();
+				//System.out.println("gc finish processing");
+				LinkedList<Channel> decomposition_f=h.DAG_decomposition_Fulkerson(G);
 				
-				//System.out.println("width:"+decomposition_f.size());
-				/*if(Heuristics.checkDecomposition(G,decomposition)==false){
+				System.out.println("width:"+decomposition_f.size());
+				if(Heuristics.checkDecomposition(G,decomposition)==false){
 					System.out.println(f);
 					System.exit(0);
-				}*/
-				//aggregate_opt+=decomposition_f.size();
+				}
+				aggregate_opt+=decomposition_f.size();
 				aggregate+=decomposition.size();
-				System.out.println("start building indexing scheme");
+				/*System.out.println("start building indexing scheme");
 				startTime = System.currentTimeMillis(); 
 				IndexingScheme scheme=new IndexingScheme( G,decomposition,array);
 				stopTime = System.currentTimeMillis();
@@ -219,15 +220,16 @@ class IndexingScheme{
 				del_e+=scheme.deletedEdges;
 				exam_e+=scheme.examinedEdges;
 				total_edges+=(scheme.deletedEdges+scheme.examinedEdges);
-				
+				*/
 				/*if(!checkIndexingScheme(G,scheme)){
 					System.out.println("indexing scheme is wrong!");
 					System.exit(0);
 				}*/
 			}
 			System.out.print("av_width:"+(aggregate_opt/graphs_num)+" av_dec_heur:"+(aggregate/graphs_num));
-			System.out.print(" av_del_edges:"+(del_e/total_edges));
-			System.out.print(" dec_time:"+(decomposition_time/graphs_num)+" scheme_time:"+(scheme_time/graphs_num)+" total_time:"+((decomposition_time+scheme_time)/graphs_num));
+			//System.out.print(" av_del_edges:"+(del_e/total_edges));
+			System.out.print(" dec_time:"+(decomposition_time/graphs_num));
+			//System.out.print(" scheme_time:"+(scheme_time/graphs_num)+" total_time:"+((decomposition_time+scheme_time)/graphs_num) );
 		}catch (Exception e) {  
             e.printStackTrace();  
         }

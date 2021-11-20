@@ -3,7 +3,10 @@ package graph;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Scanner;
+
 import java.util.LinkedList;
+import java.util.HashMap;
 import graph.Edge;
 import graph.IEdge;
 import graph.IGraph;
@@ -56,6 +59,7 @@ public class Reader {
 				String[]temp1=line.split(",");
 				int idVertex1=Integer.parseInt(temp1[1]);
 				int idVertex2=Integer.parseInt(temp1[2]);
+				//System.out.println("1:"+idVertex1+" 2:"+idVertex2+" length"+array.length);
 				IVertex v1=array[idVertex1];
 				IVertex v2=array[idVertex2];
 				//if(adjacency_matrix[(int)v1.getId()][(int)v2.getId()]==0) {
@@ -69,6 +73,59 @@ public class Reader {
 			fileReader.close();
 			//System.out.println("read the graph..edges and close!");
 		}catch(Exception e){
+			e.printStackTrace();
+			System.exit(0);
+		}
+		return G;
+	}
+	
+	//reduces vertices' IDs by 1
+	public SimpleGraph readEdgeList(File textFile) {
+		//File textFile = new File(input);
+		SimpleGraph G = new SimpleGraph();
+		
+		G.setDescription(textFile.getName());
+		try {
+			FileReader fileReader = new FileReader(textFile);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			
+			
+			String line= bufferedReader.readLine();
+			String[]temp = line.split(" ");
+			while(temp.length>2||line.contains("#")){
+				line= bufferedReader.readLine();
+				temp = line.split(" ");
+			}
+			
+			HashMap<Integer,IVertex> map=new HashMap<Integer,IVertex>();
+			//int counter=0;
+			while(line!=null){
+				//++counter;
+				temp = line.split("\t");
+				//System.out.println("|"+temp[0]+"|");
+				int sourceId = (Integer.parseInt(temp[0]));
+				int targetId = (Integer.parseInt(temp[1]));
+				IVertex s=map.get(sourceId);
+				if(s==null){
+					s=new Vertex(sourceId,""+sourceId);
+					map.put(sourceId,s);
+					G.add(s);
+				}
+				IVertex t=map.get(targetId);
+				if(t==null){
+					t=new Vertex(targetId,""+targetId);
+					map.put(targetId,t);
+					G.add(t);
+				}
+				if(!G.add(new Edge(s,t)) ){
+					System.out.println("NOT ADDED:"+sourceId+" "+targetId);
+				}
+				line = bufferedReader.readLine();
+			}
+			fileReader.close();
+		}catch(Exception e){
+			//System.out.println("lines:"+counter);
+			e.printStackTrace();  
 		}
 		return G;
 	}

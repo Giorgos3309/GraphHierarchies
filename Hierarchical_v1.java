@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap; 
 
-import org.json.*;
+//import org.json.*;
 
 import graph.*;
 
@@ -67,7 +67,7 @@ class Hierarchical_v1{
 			}
 		}
 		
-		VerticalCompaction(array);
+		//VerticalCompaction(array);
 		
 		for(int i=0;i<array.length;++i){
 			double x = -1;//x_coordinates[i]*x_dist;
@@ -618,11 +618,11 @@ class Hierarchical_v1{
 		//mainTest();
 		Reader r = new Reader();
 
-		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\inputgraphs");
+		final File folder = new File("F:\\courses\\master_thesis\\Graph decomposition code\\java\\inputgraphs");
 		LinkedList<File> files = new LinkedList<File>();
 		Main.listFilesForFolder(folder,files);
 			
-		Heuristics h = new Heuristics();
+		//Heuristics_v0 h = new Heuristics_v0();
 		try{
 			int graphs_num = 0;
 			for(File f: files) {
@@ -633,24 +633,31 @@ class Hierarchical_v1{
 				System.out.println("Edges:"+G.getEdges().size());
 				System.out.println("Nodes:"+G.getVertices().size());
 				HashMap<Integer, Integer> restoreIds = new HashMap<Integer, Integer>();
-				Main.setTopologicalIds(G);
+				IVertex[] ts = Main.setTopologicalIds(G);
+				Heuristics_v0 h = new Heuristics_v0(G,ts);
 				//System.out.println("Processing");
 				int[] adj_no = new int[ G.getVertices().size() ];
 				for( IVertex v:G.getVertices() ){
 					adj_no[(int)v.getId()] = v.getAdjacentSources().size()-1;
 				}
+			
+				
 				long startTime = System.currentTimeMillis();
-				LinkedList<Channel> decomposition = h.newMethod1(G,adj_no);//h.MyHeuristic(G,-1);//h.DAG_decomposition_Fulkerson(G);
+				LinkedList<Channel> decomposition = h.Heuristic3();//ChainOrderHeuristic_ImS();//h.MyHeuristic(G,-1);////h.DAG_decomposition_Fulkerson(G);
+				h.concatenation(decomposition);
+				decomposition=h.returnChannelDecomposition();
 				//System.out.println(decomposition.size());
 				//Main.printDecomposition(decomposition);
-				Hierarchical_v1 pbf = new Hierarchical_v1(G,decomposition);
+				Heuristics h2=new Heuristics();
+				LinkedList<Channel> decompositionold=h2.MyHeuristic(G,-1);//h2.DAG_decomposition_Fulkerson(G);//ChainOrderHeuristic(G,1000);//MyHeuristic(G,-1);
+				Hierarchical_v1 pbf = new Hierarchical_v1(G,decompositionold);
 				//System.out.println("Processing1");
 				pbf.setCordinates();
 				//System.out.println("Processing2");
 				long endTime = System.currentTimeMillis();
 				System.out.println(f.getName()+" duration:"+(endTime - startTime));
 				
-				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\code_for_the_student\\Drawings\\";
+				String dir = "F:\\courses\\master_thesis\\Graph decomposition code\\java\\Drawings\\";
 				String fname = ""+f.getName()+".gml";
 				
 				

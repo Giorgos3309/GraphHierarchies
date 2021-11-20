@@ -57,10 +57,12 @@ public class SimpleGraph extends AbstractSimpleGraph{
 	}
 
 	@Override
-	public void add(IEdge e) throws Exception {
-		if(areAdjacents(e.getSource(), e.getTarget()))
-			throw new Exception("Cannot add multiple edges");
-		super.add(e);
+	public boolean add(IEdge e) /*throws Exception*/ {
+		//if(areAdjacents(e.getSource(), e.getTarget())){
+			//throw new Exception("Cannot add multiple edges");
+		//}else{
+			return super.add(e);
+		//}
 	}
 	
 	public int computeWidth() throws Exception{

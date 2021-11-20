@@ -30,27 +30,47 @@ abstract class AbstractSimpleGraph implements IGraph {
 	}
 
 	@Override
-	public void add(IEdge e) throws Exception {
-		if(areAdjacents(e.getSource(), e.getTarget()))
-			throw new Exception("Cannot add multiple edges");
+	public boolean add(IEdge e) /*throws Exception*/ {
+		if(areAdjacents(e.getSource(), e.getTarget())){
+			//throw new Exception("Cannot add multiple edges");
+			//System.out.println("Cannot add multiple edges");
+			return false;
+		}
 		IVertex s = e.getSource();
 		IVertex t = e.getTarget();
 		edges.add(e);
 		incidentEdges.get(s).add(e);
 		incidentEdges.get(t).add(e);
+		return true;
 	}
 
 	@Override
 	public boolean areAdjacents(IVertex v, IVertex w) {
-		return getAdjacentsOf(v).contains(w);
+		return getTargetsOf(v).contains(w);
 	}
-
+	public Collection<IVertex> getTargetsOf(IVertex v) {
+		Collection<IVertex> list = new HashSet<IVertex>();
+		//System.out.println("============"+v.getLabel());
+		for(IEdge e: getIncidentEdgesOf(v)){
+			//System.out.print(""+e.getOpposite(v).getLabel()+" ");
+			if(e.getTarget().getId()==v.getId()){
+				//do nothing
+			}else{
+				list.add(e.getOpposite(v));
+			}
+		}
+		//System.out.println("");
+		return list;
+	}
 	@Override
 	public Collection<IVertex> getAdjacentsOf(IVertex v) {
 		Collection<IVertex> list = new HashSet<IVertex>();
+		System.out.println("============"+v.getLabel());
 		for(IEdge e: getIncidentEdgesOf(v)){
+			System.out.print(""+e.getOpposite(v).getLabel()+" ");
 			list.add(e.getOpposite(v));
 		}
+		System.out.println("");
 		return list;
 	}
 	

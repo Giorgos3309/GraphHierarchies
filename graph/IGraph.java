@@ -20,7 +20,7 @@ public interface IGraph {
 	
 	void add(IVertex v);
 	
-	void add(IEdge e) throws Exception;
+	boolean add(IEdge e) throws Exception;
 	
 	void remove(IVertex v);
 	
