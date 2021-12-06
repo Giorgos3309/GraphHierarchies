@@ -177,7 +177,7 @@ class Hierarchical_v1{
 			//System.out.println(lane);
 		//}
 		
-		//VerticalCompaction(array);
+		VerticalCompaction(array);
 		
 		
 		

@@ -93,8 +93,10 @@ public class Heuristics_v0 {
 				
 				boolean d=true;
 				ListIterator it=sources[cur_id];
+				//System.out.println("-----");
 				while(it.hasNext()){
 					IVertex s=(IVertex)it.next();
+					//System.out.println("--"+s.getId());
 					if(isDeleted[(int)s.getId()]==false){
 						stack.add(s);
 						d=false;
@@ -423,7 +425,83 @@ public class Heuristics_v0 {
 	}
 	
 	
+	public static void testNO(SimpleGraph G,IVertex[] ts)throws Exception{
+		for(int i=0;i<10;++i){
+			Heuristics_v0 h_v2=new Heuristics_v0(G,ts);
+			LinkedList<Channel> decomposition2 = h_v2.NodeOrderHeuristic_ImP();
+			h_v2.concatenation(decomposition2);
+		}
+		System.gc();
+		long startTime=0,stopTime=0;
+		Heuristics_v0 NO=new Heuristics_v0(G,ts);
+		startTime = System.currentTimeMillis();
+		LinkedList<Channel> decomposition = NO.NodeOrderHeuristic_ImP();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
+		stopTime = System.currentTimeMillis();
+		long decomposition_time=(stopTime-startTime);
+		System.out.println("NO: dec:"+decomposition.size()+" time:"+decomposition_time);
+		
+		startTime = System.currentTimeMillis();
+		NO.concatenation(decomposition);
+		//LinkedList<Channel> decompositionConc = NO.returnChannelDecomposition();
+		stopTime = System.currentTimeMillis();
+		long concatenation_time = (stopTime-startTime);
+		System.out.println("concatenation:  channels:"+NO.channels_num()+" concatenation_time:"+concatenation_time);				
+		
+	}
 	
+	public static void testCO(SimpleGraph G,IVertex[] ts)throws Exception{
+		for(int i=0;i<10;++i){
+			Heuristics_v0 h_v2=new Heuristics_v0(G,ts);
+			LinkedList<Channel> decomposition2 = h_v2.ChainOrderHeuristic_ImS();
+			h_v2.concatenation(decomposition2);
+		}
+		System.gc();
+		long startTime=0,stopTime=0;
+		Heuristics_v0 NO=new Heuristics_v0(G,ts);
+		startTime = System.currentTimeMillis();
+		LinkedList<Channel> decomposition = NO.ChainOrderHeuristic_ImS();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
+		stopTime = System.currentTimeMillis();
+		long decomposition_time=(stopTime-startTime);
+		System.out.println("CO: dec:"+decomposition.size()+" time:"+decomposition_time);
+		
+		startTime = System.currentTimeMillis();
+		NO.concatenation(decomposition);
+		//LinkedList<Channel> decompositionConc = NO.returnChannelDecomposition();
+		stopTime = System.currentTimeMillis();
+		long concatenation_time = (stopTime-startTime);
+		System.out.println("concatenation:  channels:"+NO.channels_num()+" concatenation_time:"+concatenation_time);				
+	}
+	
+	public static void testH3(SimpleGraph G,IVertex[] ts)throws Exception{
+		for(int i=0;i<10;++i){
+			Heuristics_v0 h_v2=new Heuristics_v0(G,ts);
+			LinkedList<Channel> decomposition2 = h_v2.Heuristic3();
+		}
+		System.gc();
+		long startTime=0,stopTime=0;
+		Heuristics_v0 NO=new Heuristics_v0(G,ts);
+		startTime = System.currentTimeMillis();
+		LinkedList<Channel> decomposition = NO.Heuristic3();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
+		stopTime = System.currentTimeMillis();
+		long decomposition_time=(stopTime-startTime);
+		System.out.println("H3: dec:"+decomposition.size()+" time:"+decomposition_time);
+
+	}
+	public static void testH3_pred(SimpleGraph G,IVertex[] ts)throws Exception{
+		for(int i=0;i<10;++i){
+			Heuristics_v0 h_v2=new Heuristics_v0(G,ts);
+			LinkedList<Channel> decomposition2 = h_v2.Heuristic3_Pred();
+		}
+		System.gc();
+		long startTime=0,stopTime=0;
+		Heuristics_v0 NO=new Heuristics_v0(G,ts);
+		startTime = System.currentTimeMillis();
+		LinkedList<Channel> decomposition = NO.Heuristic3_Pred();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
+		stopTime = System.currentTimeMillis();
+		long decomposition_time=(stopTime-startTime);
+		System.out.println("H3_pred: dec:"+decomposition.size()+" time:"+decomposition_time);
+
+	}
 	
 	public static void main(String[]args) {
 		//LinkedList<SimpleGraph>graphs2 = new LinkedList<SimpleGraph>();
@@ -448,6 +526,14 @@ public class Heuristics_v0 {
 				System.out.println("  G(n="+G.getVertices().size()+" , m="+G.getEdges().size()+")");
 				IVertex[] ts = Main.setTopologicalIdsLayered(G);
 				
+				System.out.println("CO==========================");
+				testCO(G,ts);
+				System.out.println("NO==========================");
+				testNO(G,ts);
+				System.out.println("H3==========================");
+				testH3(G,ts);
+				System.out.println("H3_pred==========================");
+				testH3_pred(G,ts);
 				/*Heuristics h = new Heuristics();
 				LinkedList<Channel> decompositionOpt=h.DAG_decomposition_Fulkerson(G);
 				System.out.println("width: "+decompositionOpt.size());
@@ -459,10 +545,10 @@ public class Heuristics_v0 {
 				
 				/*for(int i=0;i<10;++i){
 					Heuristics_v0 h_v2=new Heuristics_v0(G,ts);
-					LinkedList<Channel> decomposition2 = h_v2.ChainOrderHeuristic_ImS();
+					LinkedList<Channel> decomposition2 = h_v2.NodeOrderHeuristic_ImP();
 					h_v2.concatenation(decomposition2);
-				}*/
-				System.gc();
+				}
+				System.gc();*/
 				/*Heuristics_v0 h_v0=new Heuristics_v0(G,ts);
 				long startTime = System.currentTimeMillis(); 
 				LinkedList<Channel> decomposition = h_v0.ChainOrderHeuristic_ImS();//h.ChainOrderHeuristic_ImS(G);//h.MyHeuristic(G,0);//h.newMethod1(G,adj_no);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
@@ -476,31 +562,29 @@ public class Heuristics_v0 {
 				System.out.println("concatenation:  channels:"+h_v0.channels_num()+" time:"+(stopTime-startTime)+" agregate time:"+decomposition_time+(stopTime-startTime));
 				
 				System.out.println("");	*/		
-				long startTime=0,stopTime=0;
+				/*long startTime=0,stopTime=0;
 				Heuristics_v0 NO=new Heuristics_v0(G,ts);
 				startTime = System.currentTimeMillis();
-				LinkedList<Channel> decompositionNO = NO.Heuristic3_Pred();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
+				LinkedList<Channel> decomposition = NO.NodeOrderHeuristic_ImP();//NO.ChainOrderHeuristic_ImS();//NO.NodeOrderHeuristic_ImP();
 				stopTime = System.currentTimeMillis();
 				decomposition_time=(stopTime-startTime);
+				System.out.println("H3: dec:"+decomposition.size()+" time:"+decomposition_time);
 				//System.out.println("NodeOrderHeuristic: dec size: "+decompositionNO.size()+ " time:"+decomposition_time);
-				av_dec+=decompositionNO.size();
-				av_decomposition_time+=0;
+				//av_dec+=decompositionNO.size();
+				//av_decomposition_time+=0;
 				
 				startTime = System.currentTimeMillis();
-				NO.concatenation(decompositionNO);
-				LinkedList<Channel> decompositionNew = NO.returnChannelDecomposition();
+				NO.concatenation(decomposition);
+				//LinkedList<Channel> decompositionConc = NO.returnChannelDecomposition();
 				stopTime = System.currentTimeMillis();
 				concatenation_time = (stopTime-startTime);
 				System.out.println("concatenation:  channels:"+NO.channels_num()+" concatenation_time:"+concatenation_time);				
 				av_cdec+=NO.channels_num();
 				av_concatenation_time+=concatenation_time;
-				
+				*/
 				//System.out.println("agregate time:"+(decomposition_time+concatenation_time)+" channels reduced by:"+(decompositionNO.size()-NO.channels_num() ));
-				Heuristics oldh=new Heuristics();
-				LinkedList<Channel> decompositionOld = oldh.MyHeuristic(G,-1);
-				
-				
-				
+				/*Heuristics oldh=new Heuristics();
+				LinkedList<Channel> decompositionOld = oldh.MyHeuristic(G,-1);	
 				if(Heuristics.checkDecomposition(G,decompositionNew)!=true){
 					System.out.println("new dec is wrong");
 					System.exit(0);
@@ -510,7 +594,7 @@ public class Heuristics_v0 {
 				}
 				System.out.print("new: channels:"+NO.channels_num()+" paths:"+decompositionNO.size());
 				System.out.println(" old: paths"+decompositionOld.size());
-				
+				*/
 				/*if(decompositionNO.size()!=decompositionOld.size()){
 					System.out.println("ooooops");
 					Main.printDecomposition(decompositionNO);
@@ -521,14 +605,14 @@ public class Heuristics_v0 {
 				//Main.printDecomposition(decompositionNO);
 				System.out.println("");
 				//Main.printDecomposition(decompositionOld);
-				/*Heuristics_v0 h_3=new Heuristics_v0(G,ts);
-				startTime = System.currentTimeMillis(); 
-				LinkedList<Channel> decomposition3 = h_3.Heuristic3();//h.ChainOrderHeuristic_ImS(G);//h.MyHeuristic(G,0);//h.newMethod1(G,adj_no);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
-				stopTime = System.currentTimeMillis();
+				Heuristics h=new Heuristics();
+				long startTime = System.currentTimeMillis(); 
+				LinkedList<Channel> decomposition3 =h.DAG_decomposition_Fulkerson(G);//h.newMethod1_fastest(G,adj_no); h_3.Heuristic3();//h.ChainOrderHeuristic_ImS(G);//h.MyHeuristic(G,0);//h.newMethod1(G,adj_no);//h.DAG_decomposition_Fulkerson(G);h.newMethod1_fastest(G,adj_no);//
+				long stopTime = System.currentTimeMillis();
 				decomposition_time=(stopTime-startTime);
-				System.out.println("Heuristic3: dec size: "+decomposition3.size()+ " time:"+decomposition_time);
+				System.out.println("Width: dec size: "+decomposition3.size()+ " time:"+decomposition_time);
 				
-				startTime = System.currentTimeMillis();
+				/*startTime = System.currentTimeMillis();
 				h_3.concatenation(decomposition3);
 				stopTime = System.currentTimeMillis();
 				System.out.println("concatenation:  channels:"+h_v0.channels_num()+" time:"+(stopTime-startTime)+" agregate time:"+decomposition_time+(stopTime-startTime));
@@ -539,8 +623,8 @@ public class Heuristics_v0 {
 				//h_v0.printChannelDecomposition();
 				//Main.printDecomposition(decomposition1);
 			}
-			System.out.println("average:\n width:"+(av_width/counter)+" dec:"+(av_dec/counter)+" cdec:"+(av_cdec/counter));
-			System.out.println("av de time:"+(av_decomposition_time/counter)+" av_concatenation_time:"+(av_concatenation_time/counter));
+			//System.out.println("average:\n width:"+(av_width/counter)+" dec:"+(av_dec/counter)+" cdec:"+(av_cdec/counter));
+			//System.out.println("av de time:"+(av_decomposition_time/counter)+" av_concatenation_time:"+(av_concatenation_time/counter));
 		}catch (Exception e) {  
             e.printStackTrace();  
         }
