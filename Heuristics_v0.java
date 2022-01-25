@@ -128,7 +128,6 @@ public class Heuristics_v0 {
 			isLast.put(    (int)l.getId() , channel_no );
 			channel_no++;
 		}
-		
 		Integer []next_path=new Integer[path_decomposition.size()];
 		Integer []prev_path=new Integer[path_decomposition.size()];
 		int path_index=0;
@@ -246,10 +245,12 @@ public class Heuristics_v0 {
 		boolean[] visited = new boolean[ts.length];
 
 		int i=0;
+		int channelsId=0;
 		while(i<ts.length) {
 			IVertex start = ts[i];
 			if(/*!start.getVisited() */!visited[(int)start.getId()]   ) {
-				Channel C = new Channel(i);
+				Channel C = new Channel(channelsId);
+				channelsId++;
 				C.addVertex(start);
 				VertexChannel[(int)start.getId()]=C;
 				decomposition.add(C);
