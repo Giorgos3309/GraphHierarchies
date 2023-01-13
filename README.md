@@ -1,2 +1,2 @@
 # Path Based Framework
-prototyping repo
+Instructions will be added after refactoring and cleaning.
